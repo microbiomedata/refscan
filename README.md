@@ -105,6 +105,37 @@ Here's how you could create that environment variable:
 export MONGO_URI='mongodb://username:password@localhost:27017'
 ```
 
+#### The schema (`--schema`)
+
+As documented in the `--help` snippet above, you can provide the path to a YAML-formatted LinkML schema file to the tool
+via the `--schema` option.
+
+<details>
+
+<summary>
+Show/hide tips for getting a schema file
+</summary>
+
+---
+
+If you have `curl` installed, you can download a YAML file from GitHub by running the following command (after replacing
+the `{...}` placeholders and customizing the path):
+
+```shell
+# Download the raw content of https://github.com/{user_or_org}/{repo}/blob/{branch}/path/to/schema.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/{user_or_org}/{repo}/{branch}/path/to/schema.yaml
+```
+
+For example:
+
+```shell
+# Download the raw content of https://github.com/microbiomedata/berkeley-schema-fy24/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/berkeley-schema-fy24/main/nmdc_schema/nmdc_materialized_patterns.yaml
+```
+
+---
+</details>
+
 ### Updating
 
 You can update the tool to [the latest version available on PyPI](https://pypi.org/project/refscan/) by running:
@@ -197,19 +228,3 @@ poetry build
 `refscan` was designed under some assumptions about the schema and database, including:
 
 1. Each source document (i.e. document containing references) has a field named `type`, whose value (a string) is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class of which the document represents an instance. For example, the `type` field of each document in the `study_set` collection has the value `"nmdc:Study"`. 
-
-## Tips
-
-`refscan` requires the user to specify the path to a schema in YAML format. If you have `curl` installed, you can download a YAML file from GitHub by running the following command (after replacing the `{...}` placeholders and customizing the path):
-
-```shell
-# Download the raw content of https://github.com/{user_or_org}/{repo}/blob/{branch}/path/to/schema.yaml
-curl -o schema.yaml https://raw.githubusercontent.com/{user_or_org}/{repo}/{branch}/path/to/schema.yaml
-```
-
-For example:
-
-```shell
-# Download the raw content of https://github.com/microbiomedata/berkeley-schema-fy24/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
-curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/berkeley-schema-fy24/main/nmdc_schema/nmdc_materialized_patterns.yaml
-```
