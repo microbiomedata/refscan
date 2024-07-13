@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "refscan"
-version = "0.1.0"
+version = "0.0.0"
 description = "Scan the NMDC MongoDB database for referential integrity violations"
 authors = []
 readme = "README.md"
