@@ -3,7 +3,7 @@
 [tool.poetry]
 name = "refscan"
 version = "0.0.0"
-description = "Scan the NMDC MongoDB database for referential integrity violations"
+description = "Command-line program that scans the NMDC MongoDB database for referential integrity violations"
 authors = []
 readme = "README.md"
 repository = "https://github.com/eecavanna/refscan"
