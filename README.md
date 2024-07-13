@@ -32,6 +32,13 @@ graph LR
    > **Example:** For each document in the collection named `cars`, `refscan` checks whether the value in its `owner`
    > field matches the `id` of some document in the collection named `persons`.
 
+## Limitations
+
+`refscan` was designed under the assumption that **each document has a field named `type`,
+whose value is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class of which the document represents an instance**.
+`refscan` relies on that `type` field when determining the name of the class of which a document represents an
+instance; which it does in order to determine "which fields" of that document can contain a reference.
+
 ## Usage
 
 ### Installation
@@ -222,9 +229,3 @@ poetry build
 > file (whose name ends with `.tar.gz`) and a
 > [wheel](https://packaging.python.org/en/latest/specifications/binary-distribution-format/#binary-distribution-format)
 > file (whose name ends with `.whl`) in the `dist` directory.
-
-## Assumptions
-
-`refscan` was designed under some assumptions about the schema and database, including:
-
-1. Each source document (i.e. document containing references) has a field named `type`, whose value (a string) is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class of which the document represents an instance. For example, the `type` field of each document in the `study_set` collection has the value `"nmdc:Study"`. 
