@@ -6,9 +6,9 @@ version = "0.0.0"
 description = "Command-line program that scans the NMDC MongoDB database for referential integrity violations"
 authors = []
 readme = "README.md"
-repository = "https://github.com/eecavanna/refscan"
-homepage = "https://github.com/eecavanna/refscan"
-documentation = "https://github.com/eecavanna/refscan"
+repository = "https://github.com/microbiomedata/refscan"
+homepage = "https://github.com/microbiomedata/refscan"
+documentation = "https://github.com/microbiomedata/refscan"
 keywords = ["mongodb", "mongo", "relationships", "reference", "database", "data", "referential integrity", "scan"]
 
 [tool.poetry.dependencies]
