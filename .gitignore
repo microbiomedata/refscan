@@ -7,6 +7,9 @@
 # Python files.
 __pycache__
 
+# Built packages.
+/dist
+
 # Performance profiling files.
 /*.prof
 
