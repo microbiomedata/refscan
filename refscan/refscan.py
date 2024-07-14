@@ -18,12 +18,28 @@ from refscan.lib.Reference import Reference
 from refscan.lib.ReferenceList import ReferenceList
 from refscan.lib.Violation import Violation
 from refscan.lib.ViolationList import ViolationList
+from refscan import get_package_metadata
 
 app = typer.Typer(
     help="Scans the NMDC MongoDB database for referential integrity violations.",
     add_completion=False,  # hides the shell completion options from `--help` output
     rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
+
+
+def show_project_version_and_exit(is_active: bool = False) -> None:
+    r"""
+    Displays the version number of the installed package, then exists.
+
+    Note: The `is_active` flag will be `True` if the program was
+          invoked with the associated CLI option.
+
+    Reference: https://typer.tiangolo.com/tutorial/options/version/
+    """
+    if is_active:
+        version = get_package_metadata("Version")
+        console.print(f"[white]{version}[/white]")
+        raise typer.Exit()
 
 
 @app.command("scan")
@@ -71,6 +87,12 @@ def scan(
             resolve_path=True,
             help="Filesystem path at which you want the program to generate its violation report.",
         )] = "violations.tsv",
+        version: Annotated[Optional[bool], typer.Option(
+            "--version",
+            callback=show_project_version_and_exit,
+            is_eager=True,  # tells Typer to process this option first
+            help="Show version number and exit.",
+        )] = None,
 ):
     """
     Scans the NMDC MongoDB database for referential integrity violations.
