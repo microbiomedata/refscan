@@ -26,18 +26,19 @@ graph LR
 `refscan` does its job in two stages:
 1. It uses the LinkML schema to determine "what to scan;" i.e. all of the document-to-document references
    that _can_ exist in a database that conforms to the schema.
-   > **Example:** The schema might say that, if a document exists in a collection named `cars`, that document must have
-   > a field named `owner` that contains the `id` of a document in a collection named `persons`.
+   > **Example:** The schema might say that, if a document in the `biosample_set` collection has a field named
+   > `associated_studies`, that field must contain a list of `id`s of documents in the `study_set` collection.
 2. It scans the MongoDB database to check the integrity of all of the references that _do_ exist.
-   > **Example:** For each document in the collection named `cars`, `refscan` checks whether the value in its `owner`
-   > field matches the `id` of some document in the collection named `persons`.
+   > **Example:** For each document in the `biosample_set` collection that _does_ have a field named
+   > `associated_studies`, check whether each value in that field _is_ an `id` of a document in the `study_set`
+   > collection.
 
 ## Limitations
 
-`refscan` was designed under the assumption that **each document has a field named `type`,
-whose value is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class of which the document represents an instance**.
-`refscan` relies on that `type` field when determining the name of the class of which a document represents an
-instance; which it does in order to determine "which fields" of that document can contain a reference.
+`refscan` was designed under the assumption that **every document** in **every collection described by the schema** has
+a **field named `type`**, whose value is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class the document represents an instance
+of. `refscan` uses that `class_uri` value (in that `type` field) to determine the name of that schema class,
+which it, in turn, uses to determine _which fields_ of that document can contain references.
 
 ## Usage
 
@@ -154,8 +155,8 @@ While `refscan` is running, it will display console output indicating what it's 
 
 ![Screenshot of refscan console output](./docs/refscan-screenshot.png)
 
-Once the scan is complete, the TSV-formatted reports of references and violations will be available
-in the current directory (or in custom locations, if any were specified via CLI options).
+Once the scan is complete, the reference report (TSV file) and violation report (TSV file) will be available
+in the current directory (or in custom directories, if any were specified via CLI options).
 
 ### Updating
 
@@ -175,10 +176,10 @@ pipx uninstall refscan
 
 ## Development
 
-We use [Poetry](https://python-poetry.org/) to both (a) manage dependencies and (b) publish packages to PyPI.
+We use [Poetry](https://python-poetry.org/) to both (a) manage dependencies and (b) build distributable packages that can be published to PyPI.
 
-- `pyproject.toml`: Configuration file for Poetry and other tools (was generated via `$ poetry init`)
-- `poetry.lock`: List of dependencies, direct and indirect (was generated via `$ poetry update`)
+- `pyproject.toml`: Configuration file for Poetry and other tools (was initialized via `$ poetry init`)
+- `poetry.lock`: List of dependencies, both direct and [indirect/transitive](https://en.wikipedia.org/wiki/Transitive_dependency)
 
 ### Clone repository
 
@@ -227,8 +228,6 @@ Whenever someone publishes a [GitHub Release](https://github.com/microbiomedata/
 a [GitHub Actions workflow](.github/workflows/build-and-publish-package-to-pypi.yml)
 will automatically build a package and publish it to [PyPI](https://pypi.org/project/refscan/).
 That package will have a version identifier that matches the name of the Git tag associated with the Release.
-
-The GitHub Actions workflow will automatically 
 
 ### Test the build process locally
 
