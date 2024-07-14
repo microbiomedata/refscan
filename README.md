@@ -26,12 +26,11 @@ graph LR
 `refscan` does its job in two stages:
 1. It uses the LinkML schema to determine "what to scan;" i.e. all of the document-to-document references
    that _can_ exist in a database that conforms to the schema.
-   > **Example:** The schema might say that, if a document in the `biosample_set` collection has a field named
+   > **Example:** The schema might say that, for each document in the `biosample_set` collection that has a field named
    > `associated_studies`, that field must contain a list of `id`s of documents in the `study_set` collection.
 2. It scans the MongoDB database to check the integrity of all of the references that _do_ exist.
-   > **Example:** For each document in the `biosample_set` collection that _does_ have a field named
-   > `associated_studies`, check whether each value in that field _is_ an `id` of a document in the `study_set`
-   > collection.
+   > **Example:** For each document in the `biosample_set` collection that _has_ a field named `associated_studies`,
+   > for each value in that field, confirm there _is_ a document having that `id` in the `study_set` collection.
 
 ## Limitations
 
