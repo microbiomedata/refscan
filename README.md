@@ -69,35 +69,40 @@ At the time of this writing, the tool's `--help` snippet is:
 
  Scans the NMDC MongoDB database for referential integrity violations.
 
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --schema                                           FILE  Filesystem path at which the YAML file representing the  │
-│                                                             schema is located.                                       │
-│                                                             [default: None]                                          │
-│                                                             [required]                                               │
-│    --database-name                                    TEXT  Name of the database.                                    │
-│                                                             [default: nmdc]                                          │
-│    --mongo-uri                                        TEXT  Connection string for accessing the MongoDB server. If   │
-│                                                             you have Docker installed, you can spin up a temporary   │
-│                                                             MongoDB server at the default URI by running: $ docker   │
-│                                                             run --rm --detach -p 27017:27017 mongo                   │
-│                                                             [env var: MONGO_URI]                                     │
-│                                                             [default: mongodb://localhost:27017]                     │
-│    --verbose                          --no-verbose          Show verbose output.                                     │
-│                                                             [default: no-verbose]                                    │
-│    --skip-source-collection,--skip                    TEXT  Name of collection you do not want to search for         │
-│                                                             referring documents. Option can be used multiple times.  │
-│                                                             [default: None]                                          │
-│    --reference-report                                 FILE  Filesystem path at which you want the program to         │
-│                                                             generate its reference report.                           │
-│                                                             [default: references.tsv]                                │
-│    --violation-report                                 FILE  Filesystem path at which you want the program to         │
-│                                                             generate its violation report.                           │
-│                                                             [default: violations.tsv]                                │
-│    --help                                                   Show this message and exit.                              │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ *  --schema                               FILE  Filesystem path at which the YAML file │
+│                                                 representing the schema is located.    │
+│                                                 [default: None]                        │
+│                                                 [required]                             │
+│    --database-name                        TEXT  Name of the database.                  │
+│                                                 [default: nmdc]                        │
+│    --mongo-uri                            TEXT  Connection string for accessing the    │
+│                                                 MongoDB server. If you have Docker     │
+│                                                 installed, you can spin up a temporary │
+│                                                 MongoDB server at the default URI by   │
+│                                                 running: $ docker run --rm --detach -p │
+│                                                 27017:27017 mongo                      │
+│                                                 [env var: MONGO_URI]                   │
+│                                                 [default: mongodb://localhost:27017]   │
+│    --verbose                                    Show verbose output.                   │
+│    --skip-source-collection,--skip        TEXT  Name of collection you do not want to  │
+│                                                 search for referring documents. Option │
+│                                                 can be used multiple times.            │
+│                                                 [default: None]                        │
+│    --reference-report                     FILE  Filesystem path at which you want the  │
+│                                                 program to generate its reference      │
+│                                                 report.                                │
+│                                                 [default: references.tsv]              │
+│    --violation-report                     FILE  Filesystem path at which you want the  │
+│                                                 program to generate its violation      │
+│                                                 report.                                │
+│                                                 [default: violations.tsv]              │
+│    --version                                    Show version number and exit.          │
+│    --help                                       Show this message and exit.            │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-> Note: The above snippet was captured from a terminal window whose width was 120 characters.
+> Note: The above snippet was captured from a terminal window whose width was 90 characters.
 
 #### The MongoDB connection string (`--mongo-uri`)
 

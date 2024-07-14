@@ -63,6 +63,7 @@ def scan(
                  "`$ docker run --rm --detach -p 27017:27017 mongo`",
         )] = "mongodb://localhost:27017",
         verbose: Annotated[bool, typer.Option(
+            "--verbose",
             help="Show verbose output.",
         )] = False,
         # Reference: https://typer.tiangolo.com/tutorial/multiple-values/multiple-options/
