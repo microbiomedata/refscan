@@ -221,7 +221,7 @@ That package will have a version identifier that matches the name of the Git tag
 
 The GitHub Actions workflow will automatically 
 
-### Testing the build process locally
+### Test the build process locally
 
 In case you want to test the build process locally, you can do so by running:
 
