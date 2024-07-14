@@ -32,6 +32,10 @@ black = "^24.4.2"
 # Usage: $ pyinstrument --from-path refscan --help
 # Docs: https://pyinstrument.readthedocs.io/en/latest/guide.html#profile-a-python-cli-command
 pyinstrument = "^4.6.2"
+# We use `pytest` to run tests.
+# Usage: $ poetry run pytest
+# Docs: https://docs.pytest.org/en/stable/contents.html
+pytest = "^8.2.2"
 
 [tool.poetry.scripts]
 # Reference: https://python-poetry.org/docs/pyproject#scripts

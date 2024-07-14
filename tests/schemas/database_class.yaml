@@ -1,0 +1,20 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Database:
+    slots:
+      - biosample_set
+      - study_set
+
+slots:
+  study_set:
+    inlined_as_list: true
+    multivalued: true
+  biosample_set:
+    inlined_as_list: true
+    multivalued: true
+  only_multivalued:
+    multivalued: true
+  only_inlined_as_list:
+    inlined_as_list: true

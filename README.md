@@ -219,6 +219,18 @@ While editing the tool's source code, you can run the tool as you normally would
 refscan --help
 ```
 
+### Run tests
+
+We use [pytest](https://docs.pytest.org/en/8.2.x/) as the testing framework for `refscan`.
+
+You can run the tests by running the following command from the root directory of the repository:
+
+```shell
+poetry run pytest
+```
+
+Tests are defined in the `tests` directory.
+
 ## Building and publishing
 
 ### Build for production
