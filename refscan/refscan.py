@@ -26,10 +26,12 @@ app = typer.Typer(
     rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
 
+app_version = get_package_metadata("Version")
 
-def show_project_version_and_exit(is_active: bool = False) -> None:
+
+def display_app_version_and_exit(is_active: bool = False) -> None:
     r"""
-    Displays the version number of the installed package, then exists.
+    Displays the app's version number, then exists.
 
     Note: The `is_active` flag will be `True` if the program was
           invoked with the associated CLI option.
@@ -37,8 +39,7 @@ def show_project_version_and_exit(is_active: bool = False) -> None:
     Reference: https://typer.tiangolo.com/tutorial/options/version/
     """
     if is_active:
-        version = get_package_metadata("Version")
-        console.print(f"[white]{version}[/white]")
+        console.print(f"[white]{app_version}[/white]")
         raise typer.Exit()
 
 
@@ -90,7 +91,7 @@ def scan(
         )] = "violations.tsv",
         version: Annotated[Optional[bool], typer.Option(
             "--version",
-            callback=show_project_version_and_exit,
+            callback=display_app_version_and_exit,
             is_eager=True,  # tells Typer to process this option first
             help="Show version number and exit.",
         )] = None,
@@ -103,9 +104,9 @@ def scan(
         console.print(f"Schema YAML file: {schema_file_path}")
     schema_view = linkml_runtime.SchemaView(schema_file_path)
 
-    # Show high-level information about the schema and LinkML runtime.
-    console.print(f"Schema version:         {schema_view.schema.version}")
-    console.print(f"LinkML runtime version: {linkml_runtime.__version__}")
+    # Show high-level information about the application and schema.
+    console.print(f"refscan version: {app_version}")
+    console.print(f"Schema version: {schema_view.schema.version}")
 
     # Make a more self-documenting alias for the CLI option that can be specified multiple times.
     names_of_source_collections_to_skip: list[str] = [] if skip_source_collection is None else skip_source_collection
