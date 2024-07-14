@@ -108,6 +108,8 @@ def scan(
     console.print(f"refscan version: {app_version}")
     console.print(f"Schema version: {schema_view.schema.version}")
 
+    console.rule("[bold]Identifying references")
+
     # Make a more self-documenting alias for the CLI option that can be specified multiple times.
     names_of_source_collections_to_skip: list[str] = [] if skip_source_collection is None else skip_source_collection
 
@@ -181,6 +183,8 @@ def scan(
     # Display a table of references.
     if verbose:
         console.print(references.as_table())
+
+    console.rule("[bold]Scanning for violations")
 
     # Get a dictionary that maps source class names to the names of their fields that can contain references.
     reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
@@ -314,6 +318,8 @@ def scan(
 
     # Close the connection to the MongoDB server.
     mongo_client.close()
+
+    console.rule("[bold]Results summary")
 
     # Create a violation report in TSV format — for all collections combined.
     all_violations = ViolationList()
