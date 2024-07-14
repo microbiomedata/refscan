@@ -177,7 +177,7 @@ def scan(
                                                   target_class_name=name_of_eligible_target_class)
                             references.append(reference)
 
-    console.print(f"Slot-to-ID references described by schema: {len(references)}")
+    console.print(f"References described by schema: {len(references)}")
 
     # Create a reference report in TSV format.
     console.print(f"Writing reference report: {reference_report_file_path}")
