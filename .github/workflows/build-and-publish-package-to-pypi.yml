@@ -25,6 +25,8 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
         run: poetry install --no-interaction
+      - name: Run tests  # TODO: Consider extracting this and preceding steps into a separate job and/or workflow
+        run: poetry run pytest -v
       - name: Update package version  # Docs: https://python-poetry.org/docs/cli/#version
         run: poetry version ${{ github.ref_name }}
       - name: Build package  # Docs: https://python-poetry.org/docs/cli/#build
