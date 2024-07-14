@@ -20,9 +20,7 @@ class Finder:
         self.name_of_most_recently_found_in_collection = None
 
     def check_whether_document_having_id_exists_among_collections(
-            self,
-            document_id: str,
-            collection_names: List[str]
+        self, document_id: str, collection_names: List[str]
     ) -> bool:
         r"""
         Checks whether any documents in any of the specified collections

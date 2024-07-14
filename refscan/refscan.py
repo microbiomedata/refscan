@@ -46,56 +46,81 @@ def display_app_version_and_exit(is_active: bool = False) -> None:
 
 @app.command("scan")
 def scan(
-        # Reference: https://typer.tiangolo.com/tutorial/parameter-types/path/
-        schema_file_path: Annotated[Path, typer.Option(
+    # Reference: https://typer.tiangolo.com/tutorial/parameter-types/path/
+    schema_file_path: Annotated[
+        Path,
+        typer.Option(
             "--schema",
             dir_okay=False,
             writable=False,
             readable=True,
             resolve_path=True,
             help="Filesystem path at which the YAML file representing the schema is located.",
-        )],
-        database_name: Annotated[str, typer.Option(
+        ),
+    ],
+    database_name: Annotated[
+        str,
+        typer.Option(
             help="Name of the database.",
-        )] = "nmdc",
-        mongo_uri: Annotated[str, typer.Option(
+        ),
+    ] = "nmdc",
+    mongo_uri: Annotated[
+        str,
+        typer.Option(
             envvar="MONGO_URI",
             help="Connection string for accessing the MongoDB server. If you have Docker installed, "
-                 "you can spin up a temporary MongoDB server at the default URI by running: "
-                 "`$ docker run --rm --detach -p 27017:27017 mongo`",
-        )] = "mongodb://localhost:27017",
-        verbose: Annotated[bool, typer.Option(
+            "you can spin up a temporary MongoDB server at the default URI by running: "
+            "`$ docker run --rm --detach -p 27017:27017 mongo`",
+        ),
+    ] = "mongodb://localhost:27017",
+    verbose: Annotated[
+        bool,
+        typer.Option(
             "--verbose",
             help="Show verbose output.",
-        )] = False,
-        # Reference: https://typer.tiangolo.com/tutorial/multiple-values/multiple-options/
-        skip_source_collection: Annotated[Optional[List[str]], typer.Option(
-            "--skip-source-collection", "--skip",
+        ),
+    ] = False,
+    # Reference: https://typer.tiangolo.com/tutorial/multiple-values/multiple-options/
+    skip_source_collection: Annotated[
+        Optional[List[str]],
+        typer.Option(
+            "--skip-source-collection",
+            "--skip",
             help="Name of collection you do not want to search for referring documents. "
-                 "Option can be used multiple times.",
-        )] = None,
-        reference_report_file_path: Annotated[Optional[Path], typer.Option(
+            "Option can be used multiple times.",
+        ),
+    ] = None,
+    reference_report_file_path: Annotated[
+        Optional[Path],
+        typer.Option(
             "--reference-report",
             dir_okay=False,
             writable=True,
             readable=False,
             resolve_path=True,
             help="Filesystem path at which you want the program to generate its reference report.",
-        )] = "references.tsv",
-        violation_report_file_path: Annotated[Optional[Path], typer.Option(
+        ),
+    ] = "references.tsv",
+    violation_report_file_path: Annotated[
+        Optional[Path],
+        typer.Option(
             "--violation-report",
             dir_okay=False,
             writable=True,
             readable=False,
             resolve_path=True,
             help="Filesystem path at which you want the program to generate its violation report.",
-        )] = "violations.tsv",
-        version: Annotated[Optional[bool], typer.Option(
+        ),
+    ] = "violations.tsv",
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
             "--version",
             callback=display_app_version_and_exit,
             is_eager=True,  # tells Typer to process this option first
             help="Show version number and exit.",
-        )] = None,
+        ),
+    ] = None,
 ):
     """
     Scans the NMDC MongoDB database for referential integrity violations.
@@ -169,11 +194,13 @@ def scan(
                 for name_of_eligible_target_class in names_of_eligible_target_classes:
                     for target_collection_name, class_names_in_collection in collection_name_to_class_names.items():
                         if name_of_eligible_target_class in class_names_in_collection:
-                            reference = Reference(source_collection_name=collection_name,
-                                                  source_class_name=class_name,
-                                                  source_field_name=slot_name,
-                                                  target_collection_name=target_collection_name,
-                                                  target_class_name=name_of_eligible_target_class)
+                            reference = Reference(
+                                source_collection_name=collection_name,
+                                source_class_name=class_name,
+                                source_field_name=slot_name,
+                                target_collection_name=target_collection_name,
+                                target_class_name=name_of_eligible_target_class,
+                            )
                             references.append(reference)
 
     console.print(f"References described by schema: {len(references)}")
@@ -231,8 +258,8 @@ def scan(
             # those that have _any_ of the fields (of classes whose instances are allowed to reside in this collection)
             # that the schema allows to contain a reference to an instance.
             source_field_names = references.get_source_field_names_of_source_collection(source_collection_name)
-            or_terms = [{field_name: {'$exists': True}} for field_name in source_field_names]
-            query_filter = {'$or': or_terms}
+            or_terms = [{field_name: {"$exists": True}} for field_name in source_field_names]
+            query_filter = {"$or": or_terms}
             if verbose:
                 console.print(f"{query_filter=}")
 
@@ -250,10 +277,12 @@ def scan(
 
             # Set up the progress bar for the task of scanning those documents.
             num_relevant_documents = collection.count_documents(query_filter)
-            task_id = progress.add_task(f"{source_collection_name}",
-                                        total=num_relevant_documents,
-                                        num_violations=0,
-                                        remaining_time_label="remaining")
+            task_id = progress.add_task(
+                f"{source_collection_name}",
+                total=num_relevant_documents,
+                num_violations=0,
+                remaining_time_label="remaining",
+            )
 
             # Advance the progress bar by 0 (this makes it so that, even if there are 0 relevant documents, the progress
             # bar does not continue incrementing its "elapsed time" even after a subsequent task has begun).
@@ -295,25 +324,30 @@ def scan(
 
                         for target_id in target_ids:
                             target_exists = finder.check_whether_document_having_id_exists_among_collections(
-                                collection_names=target_collection_names,
-                                document_id=target_id
+                                collection_names=target_collection_names, document_id=target_id
                             )
                             if not target_exists:
-                                violation = Violation(source_collection_name=source_collection_name,
-                                                      source_field_name=field_name,
-                                                      source_document_object_id=source_document_object_id,
-                                                      source_document_id=source_document_id,
-                                                      target_id=target_id)
+                                violation = Violation(
+                                    source_collection_name=source_collection_name,
+                                    source_field_name=field_name,
+                                    source_document_object_id=source_document_object_id,
+                                    source_document_id=source_document_id,
+                                    target_id=target_id,
+                                )
                                 source_collections_and_their_violations[source_collection_name].append(violation)
                                 if verbose:
-                                    console.print(f"Failed to find document having `id` '{target_id}' "
-                                                  f"among collections: {target_collection_names}. "
-                                                  f"{violation=}")
+                                    console.print(
+                                        f"Failed to find document having `id` '{target_id}' "
+                                        f"among collections: {target_collection_names}. "
+                                        f"{violation=}"
+                                    )
 
                 # Advance the progress bar to account for the current document's contribution to the violations count.
-                progress.update(task_id,
-                                advance=1,
-                                num_violations=len(source_collections_and_their_violations[source_collection_name]))
+                progress.update(
+                    task_id,
+                    advance=1,
+                    num_violations=len(source_collections_and_their_violations[source_collection_name]),
+                )
 
             # Update the progress bar to indicate the current task is complete.
             progress.update(task_id, remaining_time_label="done")

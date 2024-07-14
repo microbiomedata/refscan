@@ -6,6 +6,7 @@ class Violation:
     """
     A specific reference that lacks integrity.
     """
+
     source_collection_name: str = field()
     source_field_name: str = field()
     source_document_object_id: str = field()

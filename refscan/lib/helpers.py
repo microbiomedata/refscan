@@ -4,14 +4,7 @@ from functools import cache
 from pymongo import MongoClient, timeout
 from linkml_runtime import SchemaView
 from rich.console import Console
-from rich.progress import (
-    Progress,
-    TextColumn,
-    MofNCompleteColumn,
-    BarColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn
-)
+from rich.progress import Progress, TextColumn, MofNCompleteColumn, BarColumn, TimeElapsedColumn, TimeRemainingColumn
 
 from refscan.lib.constants import DATABASE_CLASS_NAME, console
 
@@ -22,7 +15,7 @@ def connect_to_database(mongo_uri: str, database_name: str, verbose: bool = True
     """
     mongo_client: MongoClient = MongoClient(host=mongo_uri, directConnection=True)
 
-    with (timeout(5)):  # if any message exchange takes > 5 seconds, this will raise an exception
+    with timeout(5):  # if any message exchange takes > 5 seconds, this will raise an exception
         (host, port_number) = mongo_client.address
 
         if verbose:
@@ -35,9 +28,7 @@ def connect_to_database(mongo_uri: str, database_name: str, verbose: bool = True
     return mongo_client
 
 
-def get_collection_names_from_schema(
-        schema_view: SchemaView
-) -> list[str]:
+def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     """
     Returns the names of the slots of the `Database` class that describe database collections.
 

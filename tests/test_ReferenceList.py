@@ -14,20 +14,24 @@ from refscan.lib.ReferenceList import ReferenceList
 @pytest.fixture
 def reference_list():
     references = ReferenceList()
-    references.append(Reference(
-        source_collection_name="employees",
-        source_class_name="Employee",
-        source_field_name="employer",
-        target_collection_name="companies",
-        target_class_name="Company",
-    ))
-    references.append(Reference(
-        source_collection_name="companies",
-        source_class_name="Company",
-        source_field_name="owner",
-        target_collection_name="persons",
-        target_class_name="Person",
-    ))
+    references.append(
+        Reference(
+            source_collection_name="employees",
+            source_class_name="Employee",
+            source_field_name="employer",
+            target_collection_name="companies",
+            target_class_name="Company",
+        )
+    )
+    references.append(
+        Reference(
+            source_collection_name="companies",
+            source_class_name="Company",
+            source_field_name="owner",
+            target_collection_name="persons",
+            target_class_name="Person",
+        )
+    )
     return references
 
 

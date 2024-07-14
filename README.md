@@ -231,6 +231,29 @@ poetry run pytest
 
 Tests are defined in the `tests` directory.
 
+### Format code
+
+We use [`black`](https://black.readthedocs.io/en/stable/) as the code formatter for `refscan`. 
+
+We do not use it with its default options. Instead, we include an option that allows lines to be 120 characters
+instead of the default 88 characters.
+
+You can format all the Python code in the repository by running this command
+from the root directory of the repository:
+
+```shell
+poetry run black --line-length 120 .
+```
+
+#### Check format
+
+You can _check_ the format of the Python code by including the `--check` option, like this:
+
+```shell
+poetry run black --line-length 120 --check .
+```
+
+
 ## Building and publishing
 
 ### Build for production

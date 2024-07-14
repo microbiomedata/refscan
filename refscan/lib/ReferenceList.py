@@ -40,9 +40,9 @@ class ReferenceList(UserList):
         return distinct_source_field_names
 
     def get_target_collection_names(
-            self,
-            source_class_name: str,
-            source_field_name: str,
+        self,
+        source_class_name: str,
+        source_field_name: str,
     ) -> list[str]:
         """
         Returns a list of the names of the collections in which a [target] document referenced by the specified field
@@ -123,10 +123,12 @@ class ReferenceList(UserList):
         # Make the data rows for the table. Data rows that would have had the same
         # (combination of) the following fields, get consolidated into a single row;
         # and all the target class names are displayed as a list on that row.
-        fields_to_group_rows_by = ["source_collection_name",
-                                   "source_class_name",
-                                   "source_field_name",
-                                   "target_collection_name"]
+        fields_to_group_rows_by = [
+            "source_collection_name",
+            "source_class_name",
+            "source_field_name",
+            "target_collection_name",
+        ]
         groups = self.get_groups(fields_to_group_rows_by)
         data_rows: list[tuple[str, str, str, str, str]] = []
         for key, group in groups:
@@ -135,13 +137,15 @@ class ReferenceList(UserList):
             data_rows.append(row)
 
         # Initialize the table, then add the data rows to it.
-        table = Table(Column(header="Source collection", footer=f"{len(data_rows)} rows"),
-                      Column(header="Source class"),
-                      Column(header="Source field"),
-                      Column(header="Target collection"),
-                      Column(header="Target class(es)"),
-                      title="References",
-                      show_footer=True)
+        table = Table(
+            Column(header="Source collection", footer=f"{len(data_rows)} rows"),
+            Column(header="Source class"),
+            Column(header="Source field"),
+            Column(header="Target collection"),
+            Column(header="Target class(es)"),
+            title="References",
+            show_footer=True,
+        )
         for row in data_rows:
             table.add_row(*row)
 

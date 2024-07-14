@@ -10,6 +10,7 @@ class Reference:
     Note: `order` means the instances have methods that help with sorting. For example, an `__eq__` method that
           can be used to compare instances of the class as thought they were tuples of those instances' fields.
     """
+
     source_collection_name: str = field()  # e.g. "study_set"
     source_class_name: str = field()  # e.g. "Study"
     source_field_name: str = field()  # e.g. "part_of"
