@@ -60,9 +60,11 @@ class ReferenceList(UserList):
         distinct_target_collection_names = list(set(target_collection_names))
         return distinct_target_collection_names
 
-    def get_groups(self, field_names: list[str]) -> list[tuple[str, str, str, str, list[str]]]:
+    def get_groups(self, field_names: list[str]):
         r"""
         Returns an iterable of groups, where each group has a distinct combination of values in the specified fields.
+
+        TODO: Add a type hint that indicates the return type. It's an instance of a class named `groupby` (lowercase).
 
         Note: This method can be used to "consolidate" references that have the same source collection name,
               source field name, and target collection name (i.e. ones that only differ by target class name).
