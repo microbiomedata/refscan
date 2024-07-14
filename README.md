@@ -148,6 +148,15 @@ curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/berkeley-sc
 ---
 </details>
 
+#### Output
+
+While `refscan` is running, it will display console output indicating what it's currently doing.
+
+![Screenshot of refscan console output](./docs/refscan-screenshot.png)
+
+Once the scan is complete, the TSV-formatted reports of references and violations will be available
+in the current directory (or in custom locations, if any were specified via CLI options).
+
 ### Updating
 
 You can update the tool to [the latest version available on PyPI](https://pypi.org/project/refscan/) by running:
