@@ -3,6 +3,7 @@ from functools import cache
 
 from pymongo import MongoClient, timeout
 from linkml_runtime import SchemaView
+from rich.console import Console
 from rich.progress import (
     Progress,
     TextColumn,
@@ -121,3 +122,15 @@ def init_progress_bar() -> Progress:
 def get_lowercase_key(key_value_pair: tuple) -> str:
     r"""Returns the key from a `(key, value)` tuple, in lowercase."""
     return key_value_pair[0].lower()
+
+
+def print_section_header(console: Console, text: str) -> None:
+    r"""
+    Helper function that prints a vertically-padded,
+    labeled, horizontal rule to the specified console.
+
+    Reference: https://rich.readthedocs.io/en/stable/console.html#rules
+    """
+    console.print("")
+    console.rule(f"[bold]{text}[/bold]")
+    console.print("")

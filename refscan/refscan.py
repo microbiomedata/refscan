@@ -4,6 +4,7 @@ from typing_extensions import Annotated
 
 import typer
 import linkml_runtime
+from rich import padding
 
 from refscan.lib.Finder import Finder
 from refscan.lib.constants import DATABASE_CLASS_NAME, console
@@ -13,6 +14,7 @@ from refscan.lib.helpers import (
     derive_schema_class_name_from_document,
     init_progress_bar,
     get_lowercase_key,
+    print_section_header,
 )
 from refscan.lib.Reference import Reference
 from refscan.lib.ReferenceList import ReferenceList
@@ -108,7 +110,8 @@ def scan(
     console.print(f"refscan version: {app_version}")
     console.print(f"Schema version: {schema_view.schema.version}")
 
-    console.rule("[bold]Identifying references")
+    # Show a header on the console, to tell the user which stage of execution we're entering.
+    print_section_header(console, text="Identifying references")
 
     # Make a more self-documenting alias for the CLI option that can be specified multiple times.
     names_of_source_collections_to_skip: list[str] = [] if skip_source_collection is None else skip_source_collection
@@ -184,7 +187,7 @@ def scan(
     if verbose:
         console.print(references.as_table())
 
-    console.rule("[bold]Scanning for violations")
+    print_section_header(console, text="Scanning for violations")
 
     # Get a dictionary that maps source class names to the names of their fields that can contain references.
     reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
@@ -319,7 +322,7 @@ def scan(
     # Close the connection to the MongoDB server.
     mongo_client.close()
 
-    console.rule("[bold]Results summary")
+    print_section_header(console, text="Summarizing results")
 
     # Create a violation report in TSV format — for all collections combined.
     all_violations = ViolationList()
