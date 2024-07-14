@@ -4,7 +4,6 @@ from typing_extensions import Annotated
 
 import typer
 import linkml_runtime
-from rich import padding
 
 from refscan.lib.Finder import Finder
 from refscan.lib.constants import DATABASE_CLASS_NAME, console
