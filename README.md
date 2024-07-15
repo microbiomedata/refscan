@@ -21,6 +21,34 @@ graph LR
     classDef dashed_border stroke-dasharray: 5 5
 ```
 
+## Table of contents
+
+<!-- TOC -->
+* [refscan](#refscan)
+  * [Table of contents](#table-of-contents)
+  * [How it works](#how-it-works)
+  * [Limitations](#limitations)
+  * [Usage](#usage)
+    * [Install](#install)
+    * [Run](#run)
+      * [The MongoDB connection string (`--mongo-uri`)](#the-mongodb-connection-string---mongo-uri)
+      * [The schema (`--schema`)](#the-schema---schema)
+      * [Output](#output)
+    * [Update](#update)
+    * [Uninstall](#uninstall)
+  * [Development](#development)
+    * [Clone repository](#clone-repository)
+    * [Create virtual environment](#create-virtual-environment)
+    * [Install dependencies](#install-dependencies)
+    * [Make changes](#make-changes)
+    * [Run tests](#run-tests)
+    * [Format code](#format-code)
+      * [Check format](#check-format)
+  * [Building and publishing](#building-and-publishing)
+    * [Build for production](#build-for-production)
+    * [Test the build process locally](#test-the-build-process-locally)
+<!-- TOC -->
+
 ## How it works
 
 `refscan` does its job in two stages:
@@ -41,7 +69,7 @@ which it, in turn, uses to determine _which fields_ of that document can contain
 
 ## Usage
 
-### Installation
+### Install
 
 Assuming you have `pipx` installed, you can install the tool by running the following command:
 
@@ -54,7 +82,7 @@ pipx install refscan
 > Python scripts that are hosted on PyPI.
 > You can [install `pipx`](https://pipx.pypa.io/stable/installation/) by running `$ python -m pip install pipx`.
 
-### Running
+### Run
 
 You can display the tool's `--help` snippet by running:
 
@@ -157,7 +185,7 @@ While `refscan` is running, it will display console output indicating what it's 
 Once the scan is complete, the reference report (TSV file) and violation report (TSV file) will be available
 in the current directory (or in custom directories, if any were specified via CLI options).
 
-### Updating
+### Update
 
 You can update the tool to [the latest version available on PyPI](https://pypi.org/project/refscan/) by running:
 
@@ -165,7 +193,7 @@ You can update the tool to [the latest version available on PyPI](https://pypi.o
 pipx upgrade refscan
 ```
 
-### Uninstallation
+### Uninstall
 
 You can uninstall the tool from your computer by running:
 
