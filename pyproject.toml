@@ -39,10 +39,17 @@ pyinstrument = "^4.6.2"
 # Usage: $ poetry run pytest
 # Docs: https://docs.pytest.org/en/stable/contents.html
 pytest = "^8.2.2"
+pytest-cov = "^5.0.0"
 
 [tool.poetry.scripts]
 # Reference: https://python-poetry.org/docs/pyproject#scripts
 refscan = "refscan.refscan:app"
+
+[tool.pytest.ini_options]
+# Make it so that, when `$ poetry run pytest` runs, in addition to running the tests, it
+# also (via the `pytest-cov` plugin) measures test coverage of the source code directory.
+# Reference: https://pytest-cov.readthedocs.io/en/latest/config.html#configuration
+addopts = "--cov=refscan"
 
 [build-system]
 requires = ["poetry-core"]
