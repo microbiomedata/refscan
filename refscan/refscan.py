@@ -32,7 +32,7 @@ app_version = get_package_metadata("Version")
 
 def display_app_version_and_exit(is_active: bool = False) -> None:
     r"""
-    Displays the app's version number, then exists.
+    Displays the app's version number, then exits.
 
     Note: The `is_active` flag will be `True` if the program was
           invoked with the associated CLI option.
