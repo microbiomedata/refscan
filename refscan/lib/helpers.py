@@ -67,7 +67,7 @@ def translate_class_uri_into_schema_class_name(schema_view: SchemaView, class_ur
     r"""
     Returns the name of the schema class that has the specified value as its `class_uri`.
 
-    Example `"nmdc:Biosample" (a `class_uri` value) -> "Biosample" (a class name)
+    Example: "nmdc:Biosample" (a `class_uri` value) -> "Biosample" (a class name)
 
     References:
     - https://linkml.io/linkml/developers/schemaview.html#linkml_runtime.utils.schemaview.SchemaView.all_classes
