@@ -6,7 +6,7 @@ import typer
 import linkml_runtime
 
 from refscan.lib.Finder import Finder
-from refscan.lib.constants import DATABASE_CLASS_NAME, console
+from refscan.lib.constants import console
 from refscan.lib.helpers import (
     connect_to_database,
     get_collection_names_from_schema,
@@ -14,6 +14,7 @@ from refscan.lib.helpers import (
     init_progress_bar,
     get_lowercase_key,
     print_section_header,
+    get_names_of_classes_eligible_for_collection,
 )
 from refscan.lib.Reference import Reference
 from refscan.lib.ReferenceList import ReferenceList
@@ -148,10 +149,10 @@ def scan(
     # For each collection, determine the names of the classes whose instances can be stored in that collection.
     collection_name_to_class_names = {}  # example: { "study_set": ["Study"] }
     for collection_name in sorted(collection_names):
-        slot_definition = schema_view.induced_slot(collection_name, DATABASE_CLASS_NAME)
-        name_of_eligible_class = slot_definition.range
-        names_of_eligible_classes = schema_view.class_descendants(name_of_eligible_class)  # includes own class name
-        collection_name_to_class_names[collection_name] = names_of_eligible_classes
+        collection_name_to_class_names[collection_name] = get_names_of_classes_eligible_for_collection(
+            schema_view=schema_view,
+            collection_name=collection_name,
+        )
 
     # Initialize the list of references. A reference is effectively a "foreign key" (i.e. a pointer).
     references = ReferenceList()

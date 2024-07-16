@@ -6,15 +6,25 @@ classes:
     slots:
       - biosample_set
       - study_set
+  Biosample:
+    is_a: MaterialEntity
+  Study: { }
+  MaterialEntity: { }
 
 slots:
-  study_set:
-    inlined_as_list: true
-    multivalued: true
   biosample_set:
     inlined_as_list: true
     multivalued: true
+    range: Biosample
+  study_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Study
   only_multivalued:
     multivalued: true
   only_inlined_as_list:
     inlined_as_list: true
+  material_entity_set:
+    inlined_as_list: true
+    multivalued: true
+    range: MaterialEntity

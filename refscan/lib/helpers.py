@@ -51,6 +51,17 @@ def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     return collection_names
 
 
+def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collection_name: str) -> list[str]:
+    r"""
+    Returns a list of the names of the classes whose instances can be stored in the specified collection,
+    according to the specified `SchemaView`.
+    """
+    slot_definition = schema_view.induced_slot(collection_name, DATABASE_CLASS_NAME)
+    name_of_eligible_class = slot_definition.range
+    names_of_eligible_classes = schema_view.class_descendants(name_of_eligible_class)  # includes own class name
+    return names_of_eligible_classes
+
+
 @cache  # memoizes the decorated function
 def translate_class_uri_into_schema_class_name(schema_view: SchemaView, class_uri: str) -> Optional[str]:
     r"""
