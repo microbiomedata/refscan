@@ -206,6 +206,10 @@ def scan(
 
     console.print(f"References described by schema: {len(references)}")
 
+    num_collections_having_references = references.count_source_collections()
+    console.print(f"Collections containing references: {num_collections_having_references}")
+    console.print()  # newline
+
     # Create a reference report in TSV format.
     console.print(f"Writing reference report: {reference_report_file_path}")
     references.dump_to_tsv_file(file_path=reference_report_file_path)
@@ -242,6 +246,13 @@ def scan(
             else:
                 source_collection_names_in_db.append(collection_name)
 
+        # Print a message about each collection being skipped.
+        for i, collection_name in enumerate(names_of_source_collections_to_skip):
+            if i == 0:
+                console.print()  # leading newline
+            console.print(f"⚠️  [orange][bold]Skipping source collection:[/bold][/orange] {collection_name}")
+        console.print()  # newline
+
         # Process each collection, checking for referential integrity violations;
         # using the reference catalog created earlier to know which collections can
         # contain "referrers" (documents), which of their slots can contain references (fields),
@@ -250,7 +261,6 @@ def scan(
 
             # If this source collection is one of the ones the user wanted to skip, skip it now.
             if source_collection_name in names_of_source_collections_to_skip:
-                console.print(f"⚠️  [orange][bold]Skipping source collection:[/bold][/orange] {source_collection_name}")
                 continue
 
             collection = db.get_collection(source_collection_name)
@@ -358,17 +368,32 @@ def scan(
 
     print_section_header(console, text="Summarizing results")
 
-    # Create a violation report in TSV format — for all collections combined.
+    # Make a list of all violations among all collections.
     all_violations = ViolationList()
     for collection_name, violations in sorted(source_collections_and_their_violations.items(), key=get_lowercase_key):
-        console.print(f"Number of violations in {collection_name}: {len(violations)}")
         all_violations.extend(violations)
+
+        # Print a message indicating the number of violations in this collection.
+        num_violations = len(violations)
+        color_name = "white" if num_violations == 0 else "red"
+        console.print(
+            f"Number of violations in {collection_name}: "
+            f"[{color_name} not bold]{num_violations}[/{color_name} not bold]"
+        )
+
         if verbose:
             console.print(violations)
 
-    console.print(f"Total violations: {len(all_violations)}")
+    num_all_violations = len(all_violations)
+    color_name = "white" if num_all_violations == 0 else "red"
+    console.print()  # newline
+    console.print(f"Total violations: " f"[{color_name}]{num_all_violations}[/{color_name}]")
+    console.print()  # newline
+
+    # Create a TSV-formatted violation report that lists all violations among all collections.
     console.print(f"Writing violation report: {violation_report_file_path}")
     all_violations.dump_to_tsv_file(file_path=violation_report_file_path)
+    console.print()  # newline
 
 
 if __name__ == "__main__":

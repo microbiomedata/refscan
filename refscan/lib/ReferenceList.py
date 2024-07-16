@@ -28,6 +28,12 @@ class ReferenceList(UserList):
                 distinct_source_collection_names.append(reference.source_collection_name)
         return distinct_source_collection_names
 
+    def count_source_collections(self) -> int:
+        r"""
+        Returns the number of distinct source collection names among all references in the list.
+        """
+        return len(self.get_source_collection_names())
+
     def get_source_field_names_of_source_collection(self, collection_name: str) -> list[str]:
         """
         Returns the distinct source field names of the specified source collection.
