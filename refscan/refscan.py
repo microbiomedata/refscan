@@ -122,6 +122,13 @@ def scan(
             help="Show version number and exit.",
         ),
     ] = None,
+    is_skipping_scan: Annotated[
+        bool,
+        typer.Option(
+            "--no-scan",
+            help="Generate a reference report, but do not scan the database for violations.",
+        ),
+    ] = False,
 ):
     """
     Scans the NMDC MongoDB database for referential integrity violations.
@@ -217,6 +224,13 @@ def scan(
     # Display a table of references.
     if verbose:
         console.print(references.as_table())
+
+    # If the user opted to skip the scanning step, exit the script.
+    if is_skipping_scan:
+        console.print()
+        console.print("Skipping scan and exiting.")
+        console.print()
+        raise typer.Exit(code=0)
 
     print_section_header(console, text="Scanning for violations")
 
