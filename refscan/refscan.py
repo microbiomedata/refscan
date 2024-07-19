@@ -15,6 +15,7 @@ from refscan.lib.helpers import (
     get_lowercase_key,
     print_section_header,
     get_names_of_classes_eligible_for_collection,
+    get_names_of_classes_in_effective_range_of_slot,
 )
 from refscan.lib.Reference import Reference
 from refscan.lib.ReferenceList import ReferenceList
@@ -173,30 +174,11 @@ def scan(
                 # Get the slot definition in the context of its use on this particular class.
                 slot_definition = schema_view.induced_slot(slot_name=slot_name, class_name=class_name)
 
-                # Determine the slot's "effective" range, by taking into account its `any_of` constraints (if defined).
-                #
-                # Note: The `any_of` constraints constrain the slot's "effective" range beyond that described by the
-                #       induced slot definition's `range` attribute. `SchemaView` does not seem to provide the result
-                #       of applying those additional constraints, so we do it manually here (if any are defined).
-                #
-                # Reference: https://github.com/orgs/linkml/discussions/2101#discussion-6625646
-                #
-                names_of_eligible_target_classes: list[str] = []
-                if "any_of" in slot_definition and len(slot_definition.any_of) > 0:  # use the `any_of` attribute
-                    for slot_expression in slot_definition.any_of:
-                        if slot_expression.range in schema_view.all_classes():
-                            own_and_descendant_class_names = schema_view.class_descendants(slot_expression.range)
-                            names_of_eligible_target_classes.extend(own_and_descendant_class_names)
-                else:  # use the `range` attribute
-                    if slot_definition.range not in schema_view.all_classes():  # if it's not a class name, abort
-                        continue
-                    else:
-                        # Get the specified class name and the names of all classes that inherit from it.
-                        own_and_descendant_class_names = schema_view.class_descendants(slot_definition.range)
-                        names_of_eligible_target_classes.extend(own_and_descendant_class_names)
-
-                # Remove duplicate class names.
-                names_of_eligible_target_classes = list(set(names_of_eligible_target_classes))
+                # Determine the slot's "effective" range, taking into account its `any_of` constraint (if it has one).
+                names_of_eligible_target_classes = get_names_of_classes_in_effective_range_of_slot(
+                    schema_view=schema_view,
+                    slot_definition=slot_definition,
+                )
 
                 # For each of those classes whose instances can be stored in any collection, catalog a reference.
                 for name_of_eligible_target_class in names_of_eligible_target_classes:
