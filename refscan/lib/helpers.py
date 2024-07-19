@@ -148,6 +148,8 @@ def get_names_of_classes_in_effective_range_of_slot(
           induced slot definition's `range` attribute. `SchemaView` does not seem to provide the result
           of applying those additional constraints, so we do it manually here (if any are defined).
           Reference: https://github.com/orgs/linkml/discussions/2101#discussion-6625646
+
+    Reference: https://linkml.io/linkml-model/latest/docs/any_of/
     """
 
     # Initialize the list to be empty.

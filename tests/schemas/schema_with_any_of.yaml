@@ -1,0 +1,24 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Food: { }
+  Fruit:
+    is_a: Food
+  Meat:
+    is_a: Food
+  Veggie:
+    is_a: Food
+  Carrot:
+    is_a: Veggie
+
+slots:
+  favorite_breakfast:
+    range: Food
+    any_of:
+      - range: Fruit
+      - range: Veggie
+  favorite_lunch:
+    range: Meat
+  favorite_dinner:
+    range: Food
