@@ -52,11 +52,10 @@ graph LR
 ## How it works
 
 `refscan` does its job in two stages:
-1. It uses the LinkML schema to determine "what to scan;" i.e. all of the document-to-document references
-   that _can_ exist in a database that conforms to the schema.
-   > **Example:** The schema might say that, for each document in the `biosample_set` collection that has a field named
+1. It uses the LinkML schema to determine where references _can_ exist in a MongoDB database that conforms to the schema.
+   > **Example:** The schema might say that, if a document in the `biosample_set` collection has a field named
    > `associated_studies`, that field must contain a list of `id`s of documents in the `study_set` collection.
-2. It scans the MongoDB database to check the integrity of all of the references that _do_ exist.
+2. It scans the MongoDB database to check the integrity of all the references that _do_ exist.
    > **Example:** For each document in the `biosample_set` collection that _has_ a field named `associated_studies`,
    > for each value in that field, confirm there _is_ a document having that `id` in the `study_set` collection.
 
@@ -97,37 +96,39 @@ At the time of this writing, the tool's `--help` snippet is:
 
  Scans the NMDC MongoDB database for referential integrity violations.
 
-╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
-│ *  --schema                               FILE  Filesystem path at which the YAML file │
-│                                                 representing the schema is located.    │
-│                                                 [default: None]                        │
-│                                                 [required]                             │
-│    --database-name                        TEXT  Name of the database.                  │
-│                                                 [default: nmdc]                        │
-│    --mongo-uri                            TEXT  Connection string for accessing the    │
-│                                                 MongoDB server. If you have Docker     │
-│                                                 installed, you can spin up a temporary │
-│                                                 MongoDB server at the default URI by   │
-│                                                 running: $ docker run --rm --detach -p │
-│                                                 27017:27017 mongo                      │
-│                                                 [env var: MONGO_URI]                   │
-│                                                 [default: mongodb://localhost:27017]   │
-│    --verbose                                    Show verbose output.                   │
-│    --skip-source-collection,--skip        TEXT  Name of collection you do not want to  │
-│                                                 search for referring documents. Option │
-│                                                 can be used multiple times.            │
-│                                                 [default: None]                        │
-│    --reference-report                     FILE  Filesystem path at which you want the  │
-│                                                 program to generate its reference      │
-│                                                 report.                                │
-│                                                 [default: references.tsv]              │
-│    --violation-report                     FILE  Filesystem path at which you want the  │
-│                                                 program to generate its violation      │
-│                                                 report.                                │
-│                                                 [default: violations.tsv]              │
-│    --version                                    Show version number and exit.          │
-│    --help                                       Show this message and exit.            │
-╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ───────────────────────────────────────────────────────────────────────────────╮
+│ *  --schema                               FILE  Filesystem path at which the YAML file  │
+│                                                 representing the schema is located.     │
+│                                                 [default: None]                         │
+│                                                 [required]                              │
+│    --database-name                        TEXT  Name of the database.                   │
+│                                                 [default: nmdc]                         │
+│    --mongo-uri                            TEXT  Connection string for accessing the     │
+│                                                 MongoDB server. If you have Docker      │
+│                                                 installed, you can spin up a temporary  │
+│                                                 MongoDB server at the default URI by    │
+│                                                 running: $ docker run --rm --detach -p  │
+│                                                 27017:27017 mongo                       │
+│                                                 [env var: MONGO_URI]                    │
+│                                                 [default: mongodb://localhost:27017]    │
+│    --verbose                                    Show verbose output.                    │
+│    --skip-source-collection,--skip        TEXT  Name of collection you do not want to   │
+│                                                 search for referring documents. Option  │
+│                                                 can be used multiple times.             │
+│                                                 [default: None]                         │
+│    --reference-report                     FILE  Filesystem path at which you want the   │
+│                                                 program to generate its reference       │
+│                                                 report.                                 │
+│                                                 [default: references.tsv]               │
+│    --violation-report                     FILE  Filesystem path at which you want the   │
+│                                                 program to generate its violation       │
+│                                                 report.                                 │
+│                                                 [default: violations.tsv]               │
+│    --version                                    Show version number and exit.           │
+│    --no-scan                                    Generate a reference report, but do not │
+│                                                 scan the database for violations.       │
+│    --help                                       Show this message and exit.             │
+╰─────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 > Note: The above snippet was captured from a terminal window whose width was 90 characters.
@@ -251,13 +252,13 @@ refscan --help
 
 We use [pytest](https://docs.pytest.org/en/8.2.x/) as the testing framework for `refscan`.
 
+Tests are defined in the `tests` directory.
+
 You can run the tests by running the following command from the root directory of the repository:
 
 ```shell
 poetry run pytest
 ```
-
-Tests are defined in the `tests` directory.
 
 ### Format code
 
