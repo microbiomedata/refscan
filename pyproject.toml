@@ -46,10 +46,15 @@ pytest-cov = "^5.0.0"
 refscan = "refscan.refscan:app"
 
 [tool.pytest.ini_options]
-# Make it so that, when `$ poetry run pytest` runs, in addition to running the tests, it
+# Make it so that, when someone runs `$ poetry run pytest`, in addition to running the tests, it
 # also (via the `pytest-cov` plugin) measures test coverage of the source code directory.
 # Reference: https://pytest-cov.readthedocs.io/en/latest/config.html#configuration
 addopts = "--cov=refscan"
+
+[tool.black]
+# Make it so that, when someone runs `$ poetry run black`, these default CLI options are used.
+# Reference: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-format
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]
