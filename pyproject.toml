@@ -44,6 +44,7 @@ pytest-cov = "^5.0.0"
 [tool.poetry.scripts]
 # Reference: https://python-poetry.org/docs/pyproject#scripts
 refscan = "refscan.refscan:app"
+refgraph = "refscan.refgraph:app"
 
 [tool.pytest.ini_options]
 # Make it so that, when someone runs `$ poetry run pytest`, in addition to running the tests, it
