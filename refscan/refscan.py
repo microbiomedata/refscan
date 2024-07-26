@@ -123,7 +123,7 @@ def scan(
             help="Show version number and exit.",
         ),
     ] = None,
-    is_skipping_scan: Annotated[
+    user_wants_to_skip_scan: Annotated[
         bool,
         typer.Option(
             "--no-scan",
@@ -208,7 +208,7 @@ def scan(
         console.print(references.as_table())
 
     # If the user opted to skip the scanning step, exit the script.
-    if is_skipping_scan:
+    if user_wants_to_skip_scan:
         console.print()
         console.print("Skipping scan and exiting.")
         console.print()
