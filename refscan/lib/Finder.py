@@ -12,12 +12,13 @@ class Finder:
     def __init__(self, database: Database):
         self.db = database
 
-        # Initialize a variable we can use to keep track of the collection in which we most recently found a document.
+        # Initialize a variable we can use to keep track of the collections in which we most recently found targeted
+        # documents.
         #
-        # Note: This will enable us to _start_ searching in that same collection (if it's among the eligible ones)
-        #       the next time we are trying to find any document.
+        # Note: This will enable us to _start_ searching in these same collections next time.
         #
-        self.name_of_most_recently_found_in_collection = None
+        self.names_of_collections_most_recently_found_in = []
+        self.cache_size = 2  # we'll cache up to 2 collection names
 
     def check_whether_document_having_id_exists_among_collections(
         self, document_id: str, collection_names: List[str]
@@ -32,11 +33,14 @@ class Finder:
         """
         names_of_collections_to_search = collection_names.copy()
 
-        # If our cached collection name is among the ones eligible to search, move it to the front of the list.
-        cached_collection_name = self.name_of_most_recently_found_in_collection  # makes a more concise alias
-        if cached_collection_name in collection_names:
-            names_of_collections_to_search.remove(cached_collection_name)
-            names_of_collections_to_search.insert(0, cached_collection_name)  # makes it the first item
+        # Make a concise alias.
+        cache = self.names_of_collections_most_recently_found_in
+
+        # If any cached collection name is among the ones eligible to search, move it to the front of list.
+        for cached_collection_name in reversed(cache):  # goes in reverse, so latest addition ends up in front
+            if cached_collection_name in collection_names:
+                names_of_collections_to_search.remove(cached_collection_name)
+                names_of_collections_to_search.insert(0, cached_collection_name)  # makes it the first item
 
         # Search the collections in their current order.
         name_of_collection_containing_target_document = None
@@ -45,8 +49,12 @@ class Finder:
 
             # If we found the document, cache the collection name and stop searching.
             if self.db.get_collection(collection_name).find_one(query_filter, projection=["_id"]) is not None:
-                self.name_of_most_recently_found_in_collection = collection_name
                 name_of_collection_containing_target_document = collection_name
+
+                # Put this collection name at the front/start of the cache.
+                if len(cache) == 0 or cache[0] != collection_name:
+                    cache = [collection_name] + cache[0 : self.cache_size - 1]  # drops excess names from end of list
+                    self.names_of_collections_most_recently_found_in = cache  # persists it to the instance attribute
                 break
 
         return name_of_collection_containing_target_document
