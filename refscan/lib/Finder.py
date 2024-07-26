@@ -53,7 +53,9 @@ class Finder:
 
                 # Put this collection name at the front/start of the cache.
                 if len(cache) == 0 or cache[0] != collection_name:
-                    cache = [collection_name] + cache[0 : self.cache_size - 1]  # drops excess names from end of list
+                    if collection_name in cache:  # if it's elsewhere in the cache, remove it from the cache
+                        cache.remove(collection_name)
+                    cache = [collection_name] + cache[0 : self.cache_size - 1]  # prepends item, dropping any excess
                     self.names_of_collections_most_recently_found_in = cache  # persists it to the instance attribute
                 break
 
