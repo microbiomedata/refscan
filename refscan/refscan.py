@@ -70,9 +70,11 @@ def scan(
         str,
         typer.Option(
             envvar="MONGO_URI",
-            help="Connection string for accessing the MongoDB server. If you have Docker installed, "
-            "you can spin up a temporary MongoDB server at the default URI by running: "
-            "`$ docker run --rm --detach -p 27017:27017 mongo`",
+            help=(
+                "Connection string for accessing the MongoDB server. If you have Docker installed, "
+                "you can spin up a temporary MongoDB server at the default URI by running: "
+                "`$ docker run --rm --detach -p 27017:27017 mongo`"
+            ),
         ),
     ] = "mongodb://localhost:27017",
     verbose: Annotated[
@@ -88,8 +90,10 @@ def scan(
         typer.Option(
             "--skip-source-collection",
             "--skip",
-            help="Name of collection you do not want to search for referring documents. "
-            "Option can be used multiple times.",
+            help=(
+                "Name of collection you do not want to search for referring documents. "
+                "Option can be used multiple times."
+            ),
         ),
     ] = None,
     reference_report_file_path: Annotated[
