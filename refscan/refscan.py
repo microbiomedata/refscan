@@ -70,9 +70,11 @@ def scan(
         str,
         typer.Option(
             envvar="MONGO_URI",
-            help="Connection string for accessing the MongoDB server. If you have Docker installed, "
-            "you can spin up a temporary MongoDB server at the default URI by running: "
-            "`$ docker run --rm --detach -p 27017:27017 mongo`",
+            help=(
+                "Connection string for accessing the MongoDB server. If you have Docker installed, "
+                "you can spin up a temporary MongoDB server at the default URI by running: "
+                "`$ docker run --rm --detach -p 27017:27017 mongo`"
+            ),
         ),
     ] = "mongodb://localhost:27017",
     verbose: Annotated[
@@ -88,8 +90,10 @@ def scan(
         typer.Option(
             "--skip-source-collection",
             "--skip",
-            help="Name of collection you do not want to search for referring documents. "
-            "Option can be used multiple times.",
+            help=(
+                "Name of collection you do not want to search for referring documents. "
+                "Option can be used multiple times."
+            ),
         ),
     ] = None,
     reference_report_file_path: Annotated[
@@ -123,11 +127,21 @@ def scan(
             help="Show version number and exit.",
         ),
     ] = None,
-    is_skipping_scan: Annotated[
+    user_wants_to_skip_scan: Annotated[
         bool,
         typer.Option(
             "--no-scan",
             help="Generate a reference report, but do not scan the database for violations.",
+        ),
+    ] = False,
+    user_wants_to_find_missing_documents: Annotated[
+        bool,
+        typer.Option(
+            "--find-missing-documents",
+            help=(
+                "For each referenced document not found in any of the collections the schema _allows_, "
+                "search for it in all _other_ collections."
+            ),
         ),
     ] = False,
 ):
@@ -208,7 +222,7 @@ def scan(
         console.print(references.as_table())
 
     # If the user opted to skip the scanning step, exit the script.
-    if is_skipping_scan:
+    if user_wants_to_skip_scan:
         console.print()
         console.print("Skipping scan and exiting.")
         console.print()
@@ -330,16 +344,30 @@ def scan(
                             target_ids = [target_id]  # makes a one-item list
 
                         for target_id in target_ids:
-                            target_exists = finder.check_whether_document_having_id_exists_among_collections(
-                                collection_names=target_collection_names, document_id=target_id
+                            name_of_collection_containing_target_document = (
+                                finder.check_whether_document_having_id_exists_among_collections(
+                                    collection_names=target_collection_names, document_id=target_id
+                                )
                             )
-                            if not target_exists:
+                            if name_of_collection_containing_target_document is None:
+
+                                if user_wants_to_find_missing_documents:
+                                    names_of_ineligible_collections = list(
+                                        set(collection_names) - set(target_collection_names)
+                                    )
+                                    name_of_collection_containing_target_document = (
+                                        finder.check_whether_document_having_id_exists_among_collections(
+                                            collection_names=names_of_ineligible_collections, document_id=target_id
+                                        )
+                                    )
+
                                 violation = Violation(
                                     source_collection_name=source_collection_name,
                                     source_field_name=field_name,
                                     source_document_object_id=source_document_object_id,
                                     source_document_id=source_document_id,
                                     target_id=target_id,
+                                    name_of_collection_containing_target=name_of_collection_containing_target_document,
                                 )
                                 source_collections_and_their_violations[source_collection_name].append(violation)
                                 if verbose:
