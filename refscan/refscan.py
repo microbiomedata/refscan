@@ -140,7 +140,7 @@ def scan(
             "--locate-misplaced-documents",
             help=(
                 "For each referenced document not found in any of the collections the schema _allows_, "
-                "search for it in all _other_ collections."
+                "also search for it in all _other_ collections."
             ),
         ),
     ] = False,
