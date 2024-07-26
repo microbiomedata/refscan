@@ -134,6 +134,16 @@ def scan(
             help="Generate a reference report, but do not scan the database for violations.",
         ),
     ] = False,
+    user_wants_to_find_missing_documents: Annotated[
+        bool,
+        typer.Option(
+            "--find-missing-documents",
+            help=(
+                "For each referenced document not found in any of the collections the schema _allows_, "
+                "search for it in all _other_ collections."
+            ),
+        ),
+    ] = False,
 ):
     """
     Scans the NMDC MongoDB database for referential integrity violations.
@@ -334,16 +344,30 @@ def scan(
                             target_ids = [target_id]  # makes a one-item list
 
                         for target_id in target_ids:
-                            target_exists = finder.check_whether_document_having_id_exists_among_collections(
-                                collection_names=target_collection_names, document_id=target_id
+                            name_of_collection_containing_target_document = (
+                                finder.check_whether_document_having_id_exists_among_collections(
+                                    collection_names=target_collection_names, document_id=target_id
+                                )
                             )
-                            if not target_exists:
+                            if name_of_collection_containing_target_document is None:
+
+                                if user_wants_to_find_missing_documents:
+                                    names_of_ineligible_collections = list(
+                                        set(collection_names) - set(target_collection_names)
+                                    )
+                                    name_of_collection_containing_target_document = (
+                                        finder.check_whether_document_having_id_exists_among_collections(
+                                            collection_names=names_of_ineligible_collections, document_id=target_id
+                                        )
+                                    )
+
                                 violation = Violation(
                                     source_collection_name=source_collection_name,
                                     source_field_name=field_name,
                                     source_document_object_id=source_document_object_id,
                                     source_document_id=source_document_id,
                                     target_id=target_id,
+                                    name_of_collection_containing_target=name_of_collection_containing_target_document,
                                 )
                                 source_collections_and_their_violations[source_collection_name].append(violation)
                                 if verbose:

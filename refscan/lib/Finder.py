@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pymongo.database import Database
 
@@ -21,11 +21,11 @@ class Finder:
 
     def check_whether_document_having_id_exists_among_collections(
         self, document_id: str, collection_names: List[str]
-    ) -> bool:
+    ) -> Optional[str]:
         r"""
-        Checks whether any documents in any of the specified collections
-        have the specified value in their `id` field. Returns `True` if
-        any does; else returns `False`.
+        Checks whether any document in any of the specified collections has the specified value in its `id` field.
+        Returns the name of the first collection, if any, containing such a document. If none of the collections
+        contain such a document, the function returns `None`.
 
         References:
         - https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection.find_one
@@ -39,14 +39,14 @@ class Finder:
             names_of_collections_to_search.insert(0, cached_collection_name)  # makes it the first item
 
         # Search the collections in their current order.
-        is_found = False
+        name_of_collection_containing_target_document = None
         query_filter = dict(id=document_id)
         for collection_name in names_of_collections_to_search:
-            is_found = self.db.get_collection(collection_name).find_one(query_filter, projection=["_id"]) is not None
 
             # If we found the document, cache the collection name and stop searching.
-            if is_found:
+            if self.db.get_collection(collection_name).find_one(query_filter, projection=["_id"]) is not None:
                 self.name_of_most_recently_found_in_collection = collection_name
+                name_of_collection_containing_target_document = collection_name
                 break
 
-        return is_found
+        return name_of_collection_containing_target_document
