@@ -134,13 +134,13 @@ def scan(
             help="Generate a reference report, but do not scan the database for violations.",
         ),
     ] = False,
-    user_wants_to_find_missing_documents: Annotated[
+    user_wants_to_locate_misplaced_documents: Annotated[
         bool,
         typer.Option(
-            "--find-missing-documents",
+            "--locate-misplaced-documents",
             help=(
                 "For each referenced document not found in any of the collections the schema _allows_, "
-                "search for it in all _other_ collections."
+                "also search for it in all _other_ collections."
             ),
         ),
     ] = False,
@@ -351,7 +351,7 @@ def scan(
                             )
                             if name_of_collection_containing_target_document is None:
 
-                                if user_wants_to_find_missing_documents:
+                                if user_wants_to_locate_misplaced_documents:
                                     names_of_ineligible_collections = list(
                                         set(collection_names) - set(target_collection_names)
                                     )
