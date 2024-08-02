@@ -122,6 +122,9 @@ def graph(
     with open(graph_file_path, "w") as f:
         f.write(html_result)
 
+    console.print(f"Graph generated at: {graph_file_path}")
+    console.print()
+
 
 if __name__ == "__main__":
     app()
