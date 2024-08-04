@@ -1,0 +1,153 @@
+<html>
+<head>
+    <title>refgraph</title>
+    <style>
+        #graph-container {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Note: A Python script will replace the `{{ ... }}` placeholder. -->
+<div
+        id="graph-data"
+        data-graph-data-json-str-base64="{{ graph_data_json_base64 }}"
+></div>
+
+<!-- Note: The JavaScript code below will render the above graph data
+           as a graph within this HTML element. -->
+<div id="graph-container"></div>
+
+<!-- Note: The third-party JavaScript code we're loading here will add a function
+           named `cytoscape` to the `window` object (i.e. the global scope).
+           Reference: https://js.cytoscape.org/ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.1/cytoscape.min.js"
+        integrity="sha512-kv2oCpI8sYlWvr442qCcFNgXW9swhLRlDJ/39GlfZLGAWOqgU/Kz30YCYBm0yLumVzRvYEMU6uSxFniGzitKiA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    (function () {
+        // Extract the graph data, base64decode it, and parse it as JSON.
+        // Reference: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+        let graphData = []
+        const graphDataEl = document.getElementById("graph-data");
+        const graphDataJsonStrBase64 = graphDataEl.dataset.graphDataJsonStrBase64;
+        console.log(graphDataJsonStrBase64);
+        try {
+            const graphDataJsonStr = atob(graphDataJsonStrBase64);
+            graphData = JSON.parse(graphDataJsonStr);
+            console.log(graphData);
+        } catch (error) {
+            alert("Failed to parse reference data.");
+            console.error(error);
+        }
+
+        const cy = window.cytoscape({
+            container: document.getElementById("graph-container"),
+            elements: graphData,
+            layout: {
+                name: "circle" // Options include: "circle", "grid", and maybe others
+            },
+            style: [
+                {
+                    selector: "node",
+                    style: {
+                        label: "data(id)",
+                        backgroundColor: "#666666",
+                    },
+                },
+                {
+                    selector: "edge",
+                    style: {
+                        lineColor: "#999999",
+                        targetArrowColor: "#999999",
+                        targetArrowShape: "triangle",
+                        curveStyle: "bezier",
+                        width: 1,
+                    },
+                },
+                {
+                    selector: "node.outgoer",
+                    style: {
+                        fontWeight: "bold",
+                        color: "#00ff00", // text color
+                        backgroundColor: "#00ff00",
+                    }
+                },
+                {
+                    selector: "edge.outgoer",
+                    style: {
+                        lineColor: "#00ff00",
+                        targetArrowColor: "#00ff00",
+                        width: 3,
+                    }
+                },
+                {
+                    selector: "node.incomer",
+                    style: {
+                        fontWeight: "bold",
+                        color: "#ffA500", // text color
+                        backgroundColor: "#ffA500",
+                    }
+                },
+                {
+                    selector: "edge.incomer",
+                    style: {
+                        lineColor: "#ffA500",
+                        targetArrowColor: "#ffA500",
+                        width: 3,
+                    }
+                },
+                {
+                    selector: "node.inFocus",
+                    style: {
+                        fontWeight: "bold",
+                        color: "#0000ff", // text color
+                        backgroundColor: "#0000ff"
+                    }
+                }
+            ],
+        });
+
+        // Whenever the user clicks on a node, highlight that node, all the edges
+        // emanating from that node, and all the nodes those edges point to.
+        //
+        // References:
+        // - https://js.cytoscape.org/#events
+        // - https://js.cytoscape.org/#collection/traversing
+        //
+        cy.bind("tap", "node", (event) => {
+            // Remove classes from all elements.
+            cy.elements()
+                .removeClass("outgoer")
+                .removeClass("incomer")
+                .removeClass("inFocus");
+
+            // Apply classes to the target node, the arrows coming out of it,
+            // and the nodes those arrows point to.
+            event.target
+                .addClass("inFocus")
+                .outgoers()
+                .addClass("outgoer");
+
+            // Apply classes to the arrows pointing to the target node,
+            // and the nodes those arrows are coming out of.
+            event.target
+                .incomers()
+                .addClass("incomer");
+        });
+
+        // Whenever the user double-clicks on a node, un-highlight all elements.
+        cy.bind("dbltap", "node", (event) => {
+            // Remove classes from all elements.
+            cy.elements()
+                .removeClass("outgoer")
+                .removeClass("incomer")
+                .removeClass("inFocus");
+        });
+    })();
+</script>
+</body>
+</html>
