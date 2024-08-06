@@ -4,6 +4,7 @@ from typing_extensions import Annotated
 import csv
 import json
 import base64
+from importlib import resources
 
 import typer
 
@@ -75,11 +76,6 @@ def graph(
 
     print_section_header(console, text="Generating graph")
 
-    # Read the HTML template file.
-    html_template = ""
-    with open(html_template_path, "r") as f:
-        html_template = f.read()
-
     # Generate a list of elements (i.e. nodes and edges) for use by the `cytoscape` JavaScript library.
     #
     # Note: Nodes are represented like this (here are two examples):
@@ -117,6 +113,11 @@ def graph(
     console.print()
 
     elements = nodes + edges  # join the lists
+
+    # Read the HTML template file.
+    html_template = ""
+    with open(html_template_path, "r") as f:
+        html_template = f.read()
 
     # Generate an HTML file (based upon the template) that contains those elements.
     graph_data_json_str = json.dumps(elements)
