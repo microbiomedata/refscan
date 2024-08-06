@@ -1,3 +1,4 @@
+from os.path import join
 from pathlib import Path
 from typing import Optional
 from typing_extensions import Annotated
@@ -20,7 +21,19 @@ app = typer.Typer(
     rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
 
-html_template_path = r"refscan/templates/graph.template.html"
+
+def load_template(resource_path: str) -> str:
+    r"""
+    Returns the contents of a template file as a string.
+
+    Note: We do this via `importlib.resources` instead of a regular `open()` so
+          that the path is accurate both when this script is run in a development
+          environment and when this script is run when installed from PyPI,
+          instead of it only being accurate in the former case.
+          Reference: https://docs.python.org/3.10/library/importlib.html
+    """
+    package_name = "refscan"
+    return resources.files(package_name).joinpath(resource_path).read_text(encoding="utf-8")
 
 
 @app.command("graph")
@@ -114,10 +127,8 @@ def graph(
 
     elements = nodes + edges  # join the lists
 
-    # Read the HTML template file.
-    html_template = ""
-    with open(html_template_path, "r") as f:
-        html_template = f.read()
+    # Load the HTML template file.
+    html_template = load_template(r"templates/graph.template.html")
 
     # Generate an HTML file (based upon the template) that contains those elements.
     graph_data_json_str = json.dumps(elements)
