@@ -1,4 +1,4 @@
-from os.path import join
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 from typing_extensions import Annotated
@@ -20,6 +20,13 @@ app = typer.Typer(
     add_completion=False,  # hides the shell completion options from `--help` output
     rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
+
+
+class Subject(str, Enum):
+    r"""The subject (i.e. focal point) of the graph."""
+
+    collection = "collection"
+    class_ = "class"
 
 
 def load_template(resource_path: str) -> str:
@@ -60,6 +67,14 @@ def graph(
             help="Filesystem path at which you want **refgraph** to generate the graph.",
         ),
     ] = "graph.html",
+    subject: Annotated[
+        Subject,
+        typer.Option(
+            "--subject",
+            case_sensitive=False,
+            help="Whether you want each node of the graph to represent a collection or a class.",
+        ),
+    ] = Subject.collection,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -106,16 +121,18 @@ def graph(
     nodes = []
     edges = []
     for r in references:
-        # Append a node for the source collection if we haven't already done so. Same for the target collection.
-        source_name = r.source_collection_name
-        target_name = r.target_collection_name
+        # Get the source and target names depending upon the subject of the graph.
+        source_name = r.source_collection_name if subject == Subject.collection else r.source_class_name
+        target_name = r.target_collection_name if subject == Subject.collection else r.target_class_name
+
+        # Append a node for the source subject if we haven't already done so. Same for the target subject.
         node_ids = [n["data"]["id"] for n in nodes]
         if source_name not in node_ids:
             nodes.append(dict(data=dict(id=source_name)))
         if target_name not in node_ids:
             nodes.append(dict(data=dict(id=target_name)))
 
-        # Append an edge for this collection-to-collection relationship if we haven't already done so.
+        # Append an edge for this source subject-to-target subject relationship if we haven't already done so.
         edge_id = f"{source_name}__to__{target_name}"
         edge_ids = [e["data"]["id"] for e in edges]
         if edge_id not in edge_ids:
