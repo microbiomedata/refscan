@@ -1,12 +1,14 @@
 from rich.progress import Progress
 import linkml_runtime
 
+from refscan.lib.Reference import Reference
 from refscan.lib.helpers import (
     get_lowercase_key,
     init_progress_bar,
     get_collection_names_from_schema,
     get_names_of_classes_eligible_for_collection,
     get_names_of_classes_in_effective_range_of_slot,
+    identify_references,
 )
 
 
@@ -76,3 +78,43 @@ def test_get_names_of_classes_in_effective_range_of_slot():
     assert "Meat" in class_names
     assert "Veggie" in class_names
     assert "Carrot" in class_names  # grandchild class
+
+
+def test_identify_references():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_with_references.yaml")
+
+    collection_name_to_class_names = {}
+    for collection_name in get_collection_names_from_schema(schema_view):
+        collection_name_to_class_names[collection_name] = get_names_of_classes_eligible_for_collection(
+            schema_view=schema_view,
+            collection_name=collection_name,
+        )
+
+    actual_references = identify_references(schema_view, collection_name_to_class_names)
+    assert len(actual_references) == 3
+
+    expected_references = [
+        Reference(
+            source_collection_name="company_set",
+            source_class_name="Company",
+            source_field_name="employs",
+            target_collection_name="employee_set",
+            target_class_name="Employee",
+        ),
+        Reference(
+            source_collection_name="employee_set",
+            source_class_name="Employee",
+            source_field_name="works_for",
+            target_collection_name="company_set",
+            target_class_name="Company",
+        ),
+        Reference(
+            source_collection_name="employee_set",
+            source_class_name="Employee",
+            source_field_name="managed_by",
+            target_collection_name="employee_set",
+            target_class_name="Employee",
+        ),
+    ]
+    for expected_reference in expected_references:
+        assert expected_reference in actual_references

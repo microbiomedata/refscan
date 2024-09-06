@@ -6,6 +6,8 @@ from linkml_runtime import SchemaView, linkml_model
 from rich.console import Console
 from rich.progress import Progress, TextColumn, MofNCompleteColumn, BarColumn, TimeElapsedColumn, TimeRemainingColumn
 
+from refscan.lib.ReferenceList import ReferenceList
+from refscan.lib.Reference import Reference
 from refscan.lib.constants import DATABASE_CLASS_NAME, console
 
 
@@ -174,3 +176,47 @@ def get_names_of_classes_in_effective_range_of_slot(
     names_of_eligible_target_classes = list(set(names_of_eligible_target_classes))
 
     return names_of_eligible_target_classes
+
+
+def identify_references(
+    schema_view: SchemaView,
+    collection_name_to_class_names: dict[str, list[str]],
+) -> ReferenceList:
+    r"""
+    Returns a `ReferenceList`, identifying all the inter-document references that the schema allows to exist.
+
+    Note: This list is derived from the schema alone. There is no database involved.
+    """
+
+    # Initialize the list of references.
+    references = ReferenceList()
+
+    # For each class whose instances can be stored in each collection, determine which of its slots can be a reference.
+    sorted_collection_names_to_class_names = sorted(collection_name_to_class_names.items(), key=get_lowercase_key)
+    for collection_name, class_names in sorted_collection_names_to_class_names:
+        for class_name in class_names:
+            for slot_name in schema_view.class_slots(class_name):
+
+                # Get the slot definition in the context of its use on this particular class.
+                slot_definition = schema_view.induced_slot(slot_name=slot_name, class_name=class_name)
+
+                # Determine the slot's "effective" range, taking into account its `any_of` constraint (if it has one).
+                names_of_eligible_target_classes = get_names_of_classes_in_effective_range_of_slot(
+                    schema_view=schema_view,
+                    slot_definition=slot_definition,
+                )
+
+                # For each of those classes whose instances can be stored in any collection, catalog a reference.
+                for name_of_eligible_target_class in names_of_eligible_target_classes:
+                    for target_collection_name, class_names_in_collection in collection_name_to_class_names.items():
+                        if name_of_eligible_target_class in class_names_in_collection:
+                            reference = Reference(
+                                source_collection_name=collection_name,
+                                source_class_name=class_name,
+                                source_field_name=slot_name,
+                                target_collection_name=target_collection_name,
+                                target_class_name=name_of_eligible_target_class,
+                            )
+                            references.append(reference)
+
+    return references
