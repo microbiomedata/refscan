@@ -186,8 +186,8 @@ def graph(
     graph_data_json_bytes = graph_data_json_str.encode("utf-8")
     graph_data_json_base64 = base64.b64encode(graph_data_json_bytes)
     graph_data_json_base64_str = graph_data_json_base64.decode("utf-8")
-    placeholder = "{{ graph_data_json_base64 }}"
-    html_result = html_template.replace(placeholder, graph_data_json_base64_str)
+    html_result = html_template.replace("{{ schema_version }}", schema_view.schema.version)
+    html_result = html_result.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)
 
     if verbose:
         console.print(html_result)
