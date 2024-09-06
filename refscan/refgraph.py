@@ -2,21 +2,23 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 from typing_extensions import Annotated
-import csv
 import json
 import base64
 from importlib import resources
 
 import typer
+import linkml_runtime
 
 from refscan.lib.constants import console
 from refscan.lib.helpers import (
     print_section_header,
+    get_collection_names_from_schema,
+    get_names_of_classes_eligible_for_collection,
+    identify_references,
 )
-from refscan.lib.Reference import Reference
 
 app = typer.Typer(
-    help="Generates an interactive graph (network diagram) of a reference report.",
+    help="Generates an interactive graph (network diagram) of the references described by a schema.",
     add_completion=False,  # hides the shell completion options from `--help` output
     rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
@@ -45,15 +47,16 @@ def load_template(resource_path: str) -> str:
 
 @app.command("graph")
 def graph(
-    reference_report_file_path: Annotated[
+    # Reference: https://typer.tiangolo.com/tutorial/parameter-types/path/
+    schema_file_path: Annotated[
         Path,
         typer.Option(
-            "--reference-report",
+            "--schema",
             dir_okay=False,
             writable=False,
             readable=True,
             resolve_path=True,
-            help="Filesystem path at which the reference report resides.",
+            help="Filesystem path at which the YAML file representing the schema is located.",
         ),
     ],
     graph_file_path: Annotated[
@@ -84,19 +87,40 @@ def graph(
     ] = False,
 ):
     r"""
-    Generates an interactive graph (network diagram) of a reference report.
+    Generates an interactive graph (network diagram) of the references described by a schema.
     """
 
-    print_section_header(console, text="Reading reference report")
+    print_section_header(console, text="Reading schema")
 
-    # Instantiate a `Reference` for each data row in the reference report.
-    references = []
-    with open(reference_report_file_path, "r") as f:
-        reader = csv.DictReader(f, delimiter="\t")  # automatically gets field names from first row
-        for reference_dict in reader:
-            assert isinstance(reference_dict, dict)  # added because, otherwise, PyCharm thinks it's a `str`
-            reference = Reference(**reference_dict)  # uses dict (i.e. keys and their values) as kwargs
-            references.append(reference)
+    # Instantiate a `linkml_runtime.SchemaView` bound to the specified schema.
+    if verbose:
+        console.print(f"Schema YAML file: {schema_file_path}")
+    schema_view = linkml_runtime.SchemaView(schema_file_path)
+
+    # Show high-level information about the schema.
+    console.print(f"Schema version: {schema_view.schema.version}")
+
+    # Show a header on the console, to tell the user which stage of execution we're entering.
+    print_section_header(console, text="Identifying references")
+
+    # Get a list of collection names (technically, `Database` slot names) from the schema.
+    # e.g. ["study_set", ...]
+    collection_names = get_collection_names_from_schema(schema_view)
+    console.print(f"Collections described by schema: {len(collection_names)}")
+
+    # For each collection, determine the names of the classes whose instances can be stored in that collection.
+    collection_name_to_class_names = {}  # example: { "study_set": ["Study"] }
+    for collection_name in sorted(collection_names):
+        collection_name_to_class_names[collection_name] = get_names_of_classes_eligible_for_collection(
+            schema_view=schema_view,
+            collection_name=collection_name,
+        )
+
+    # Identify the inter-document references that the schema allows to exist.
+    references = identify_references(
+        schema_view=schema_view, collection_name_to_class_names=collection_name_to_class_names
+    )
+    console.print(f"References described by schema: {len(references)}")
 
     console.print(f"References: {len(references)}")
     if verbose:
