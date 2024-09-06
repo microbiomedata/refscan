@@ -29,6 +29,9 @@
 
 <script>
     (function () {
+        // Note: A Python script will replace the `{{ ... }}` placeholder.
+        console.log("Schema version: {{ schema_version }}");
+
         // Extract the graph data, base64decode it, and parse it as JSON.
         // Reference: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
         let graphData = []

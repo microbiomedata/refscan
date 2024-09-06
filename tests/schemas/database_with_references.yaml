@@ -1,0 +1,32 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Database:
+    slots:
+      - company_set
+      - employee_set
+  Company:
+    slots:
+      - employs
+  Employee:
+    slots:
+      - works_for
+      - managed_by
+
+slots:
+  company_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Company
+  employee_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Employee
+  works_for:
+    range: Company
+  employs:
+    range: Employee
+  managed_by:
+    range: Employee
+

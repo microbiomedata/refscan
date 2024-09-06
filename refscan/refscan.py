@@ -15,10 +15,8 @@ from refscan.lib.helpers import (
     get_lowercase_key,
     print_section_header,
     get_names_of_classes_eligible_for_collection,
-    get_names_of_classes_in_effective_range_of_slot,
+    identify_references,
 )
-from refscan.lib.Reference import Reference
-from refscan.lib.ReferenceList import ReferenceList
 from refscan.lib.Violation import Violation
 from refscan.lib.ViolationList import ViolationList
 from refscan import get_package_metadata
@@ -176,37 +174,10 @@ def scan(
             collection_name=collection_name,
         )
 
-    # Initialize the list of references. A reference is effectively a "foreign key" (i.e. a pointer).
-    references = ReferenceList()
-
-    # For each class whose instances can be stored in each collection, determine which of its slots can be a reference.
-    sorted_collection_names_to_class_names = sorted(collection_name_to_class_names.items(), key=get_lowercase_key)
-    for collection_name, class_names in sorted_collection_names_to_class_names:
-        for class_name in class_names:
-            for slot_name in schema_view.class_slots(class_name):
-
-                # Get the slot definition in the context of its use on this particular class.
-                slot_definition = schema_view.induced_slot(slot_name=slot_name, class_name=class_name)
-
-                # Determine the slot's "effective" range, taking into account its `any_of` constraint (if it has one).
-                names_of_eligible_target_classes = get_names_of_classes_in_effective_range_of_slot(
-                    schema_view=schema_view,
-                    slot_definition=slot_definition,
-                )
-
-                # For each of those classes whose instances can be stored in any collection, catalog a reference.
-                for name_of_eligible_target_class in names_of_eligible_target_classes:
-                    for target_collection_name, class_names_in_collection in collection_name_to_class_names.items():
-                        if name_of_eligible_target_class in class_names_in_collection:
-                            reference = Reference(
-                                source_collection_name=collection_name,
-                                source_class_name=class_name,
-                                source_field_name=slot_name,
-                                target_collection_name=target_collection_name,
-                                target_class_name=name_of_eligible_target_class,
-                            )
-                            references.append(reference)
-
+    # Identify the inter-document references that the schema allows to exist.
+    references = identify_references(
+        schema_view=schema_view, collection_name_to_class_names=collection_name_to_class_names
+    )
     console.print(f"References described by schema: {len(references)}")
 
     num_collections_having_references = references.count_source_collections()
