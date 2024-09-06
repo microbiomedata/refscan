@@ -16,6 +16,7 @@ from refscan.lib.helpers import (
     get_names_of_classes_eligible_for_collection,
     identify_references,
 )
+from refscan.refscan import display_app_version_and_exit
 
 app = typer.Typer(
     help="Generates an interactive graph (network diagram) of the references described by a schema.",
@@ -85,6 +86,15 @@ def graph(
             help="Show verbose output.",
         ),
     ] = False,
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version",
+            callback=display_app_version_and_exit,
+            is_eager=True,  # tells Typer to process this option first
+            help="Show version number and exit.",
+        ),
+    ] = None,
 ):
     r"""
     Generates an interactive graph (network diagram) of the references described by a schema.
