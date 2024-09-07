@@ -47,6 +47,8 @@ graph LR
   * [Building and publishing](#building-and-publishing)
     * [Build for production](#build-for-production)
     * [Test the build process locally](#test-the-build-process-locally)
+  * [Appendix](#appendix)
+    * [refgraph](#refgraph)
 <!-- TOC -->
 
 ## How it works
@@ -96,39 +98,43 @@ At the time of this writing, the tool's `--help` snippet is:
 
  Scans the NMDC MongoDB database for referential integrity violations.
 
-╭─ Options ───────────────────────────────────────────────────────────────────────────────╮
-│ *  --schema                               FILE  Filesystem path at which the YAML file  │
-│                                                 representing the schema is located.     │
-│                                                 [default: None]                         │
-│                                                 [required]                              │
-│    --database-name                        TEXT  Name of the database.                   │
-│                                                 [default: nmdc]                         │
-│    --mongo-uri                            TEXT  Connection string for accessing the     │
-│                                                 MongoDB server. If you have Docker      │
-│                                                 installed, you can spin up a temporary  │
-│                                                 MongoDB server at the default URI by    │
-│                                                 running: $ docker run --rm --detach -p  │
-│                                                 27017:27017 mongo                       │
-│                                                 [env var: MONGO_URI]                    │
-│                                                 [default: mongodb://localhost:27017]    │
-│    --verbose                                    Show verbose output.                    │
-│    --skip-source-collection,--skip        TEXT  Name of collection you do not want to   │
-│                                                 search for referring documents. Option  │
-│                                                 can be used multiple times.             │
-│                                                 [default: None]                         │
-│    --reference-report                     FILE  Filesystem path at which you want the   │
-│                                                 program to generate its reference       │
-│                                                 report.                                 │
-│                                                 [default: references.tsv]               │
-│    --violation-report                     FILE  Filesystem path at which you want the   │
-│                                                 program to generate its violation       │
-│                                                 report.                                 │
-│                                                 [default: violations.tsv]               │
-│    --version                                    Show version number and exit.           │
-│    --no-scan                                    Generate a reference report, but do not │
-│                                                 scan the database for violations.       │
-│    --help                                       Show this message and exit.             │
-╰─────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ *  --schema                               FILE  Filesystem path at which the YAML file │
+│                                                 representing the schema is located.    │
+│                                                 [default: None]                        │
+│                                                 [required]                             │
+│    --database-name                        TEXT  Name of the database.                  │
+│                                                 [default: nmdc]                        │
+│    --mongo-uri                            TEXT  Connection string for accessing the    │
+│                                                 MongoDB server. If you have Docker     │
+│                                                 installed, you can spin up a temporary │
+│                                                 MongoDB server at the default URI by   │
+│                                                 running: $ docker run --rm --detach -p │
+│                                                 27017:27017 mongo                      │
+│                                                 [env var: MONGO_URI]                   │
+│                                                 [default: mongodb://localhost:27017]   │
+│    --verbose                                    Show verbose output.                   │
+│    --skip-source-collection,--skip        TEXT  Name of collection you do not want to  │
+│                                                 search for referring documents. Option │
+│                                                 can be used multiple times.            │
+│                                                 [default: None]                        │
+│    --reference-report                     FILE  Filesystem path at which you want the  │
+│                                                 program to generate its reference      │
+│                                                 report.                                │
+│                                                 [default: references.tsv]              │
+│    --violation-report                     FILE  Filesystem path at which you want the  │
+│                                                 program to generate its violation      │
+│                                                 report.                                │
+│                                                 [default: violations.tsv]              │
+│    --version                                    Show version number and exit.          │
+│    --no-scan                                    Generate a reference report, but do    │
+│                                                 not scan the database for violations.  │
+│    --locate-misplaced-documents                 For each referenced document not found │
+│                                                 in any of the collections the schema   │
+│                                                 allows, also search for it in all      │
+│                                                 other collections.                     │
+│    --help                                       Show this message and exit.            │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 > Note: The above snippet was captured from a terminal window whose width was 90 characters.
@@ -304,3 +310,20 @@ poetry build
 > file (whose name ends with `.tar.gz`) and a
 > [wheel](https://packaging.python.org/en/latest/specifications/binary-distribution-format/#binary-distribution-format)
 > file (whose name ends with `.whl`) in the `dist` directory.
+
+## Appendix
+
+### refgraph
+
+When `pipx` installs `refscan`, it also installs a program called `refgraph`. `refgraph` is a program you can use to
+generate a web-based, interactive graph (network diagram) of the relationships that can exist between documents in a
+database that conforms to a given schema. It can present the relationships in terms of either database collections
+or schema classes.
+
+You can learn more about `refgraph` by running:
+
+```shell
+refgraph --help
+```
+
+> Note: `refgraph` is still in early development and its features and CLI are subject to change.
