@@ -9,6 +9,7 @@ from importlib import resources
 import typer
 import linkml_runtime
 
+from refscan import get_package_metadata
 from refscan.lib.constants import console
 from refscan.lib.helpers import (
     print_section_header,
@@ -44,6 +45,16 @@ def load_template(resource_path: str) -> str:
     """
     package_name = "refscan"
     return resources.files(package_name).joinpath(resource_path).read_text(encoding="utf-8")
+
+
+def encode_json_value_as_base64_str(json_value: dict | list) -> str:
+    r"""Helper function that encodes the specified JSON value as a base64 string."""
+
+    value_as_string = json.dumps(json_value)
+    string_as_bytes = value_as_string.encode("utf-8")
+    encoded_bytes = base64.b64encode(string_as_bytes)
+    encoded_bytes_as_string = encoded_bytes.decode("utf-8")
+    return encoded_bytes_as_string
 
 
 @app.command("graph")
@@ -182,12 +193,15 @@ def graph(
     html_template = load_template(r"templates/graph.template.html")
 
     # Generate an HTML file (based upon the template) that contains those elements.
-    graph_data_json_str = json.dumps(elements)
-    graph_data_json_bytes = graph_data_json_str.encode("utf-8")
-    graph_data_json_base64 = base64.b64encode(graph_data_json_bytes)
-    graph_data_json_base64_str = graph_data_json_base64.decode("utf-8")
-    html_result = html_template.replace("{{ schema_version }}", schema_view.schema.version)
-    html_result = html_result.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)
+    graph_data_json_base64_str = encode_json_value_as_base64_str(elements)
+    graph_metadata_json_base64_str = encode_json_value_as_base64_str(
+        dict(
+            app_version=get_package_metadata("Version"),
+            schema_version=schema_view.schema.version,
+        )
+    )
+    html_result = html_template.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)
+    html_result = html_result.replace("{{ graph_metadata_json_base64 }}", graph_metadata_json_base64_str)
 
     if verbose:
         console.print(html_result)

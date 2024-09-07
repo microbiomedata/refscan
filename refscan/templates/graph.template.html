@@ -6,19 +6,37 @@
             width: 100%;
             height: 100vh;
         }
+        #metadata-container {
+            font-family: sans-serif;
+            font-size: 0.8em;
+            color: #999999;
+            position: absolute;
+            bottom: 1em;
+            right: 1em;
+            text-align: right;
+        }
+        #metadata-container ul {
+            list-style-type: none;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
 
-<!-- Note: A Python script will replace the `{{ ... }}` placeholder. -->
+<!-- Note: A Python script will replace the `{{ ... }}` placeholders. -->
 <div
         id="graph-data"
         data-graph-data-json-str-base64="{{ graph_data_json_base64 }}"
+        data-graph-metadata-json-str-base64="{{ graph_metadata_json_base64 }}"
 ></div>
 
 <!-- Note: The JavaScript code below will render the above graph data
            as a graph within this HTML element. -->
 <div id="graph-container"></div>
+
+<!-- Note: The JavaScript code below will render metadata about the graph,
+           within this HTML element. -->
+<div id="metadata-container"></div>
 
 <!-- Note: The third-party JavaScript code we're loading here will add a function
            named `cytoscape` to the `window` object (i.e. the global scope).
@@ -32,21 +50,52 @@
         // Note: A Python script will replace the `{{ ... }}` placeholder.
         console.log("Schema version: {{ schema_version }}");
 
-        // Extract the graph data, base64decode it, and parse it as JSON.
+        // Extract the base64-encoded graph metadata and data from the `graph-data` HTML element.
         // Reference: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
-        let graphData = []
+        let graphMetadata = {};
+        let graphData = [];
         const graphDataEl = document.getElementById("graph-data");
+        const graphMetadataJsonStrBase64 = graphDataEl.dataset.graphMetadataJsonStrBase64;
         const graphDataJsonStrBase64 = graphDataEl.dataset.graphDataJsonStrBase64;
-        console.log(graphDataJsonStrBase64);
+
+        // Base64-decode the graph metadata and parse it as JSON.
         try {
-            const graphDataJsonStr = atob(graphDataJsonStrBase64);
-            graphData = JSON.parse(graphDataJsonStr);
-            console.log(graphData);
+            const graphMetadataJsonStr = atob(graphMetadataJsonStrBase64);
+            graphMetadata = JSON.parse(graphMetadataJsonStr);
+            console.debug("graphMetadata", graphMetadata);
         } catch (error) {
-            alert("Failed to parse reference data.");
+            alert("Failed to parse metadata.");
+            console.debug("graphMetadataJsonStrBase64", graphMetadataJsonStrBase64);
             console.error(error);
         }
 
+        // Display the graph metadata on the web page.
+        const metadataContainerEl = document.getElementById("metadata-container");
+        const metadataListEl = document.createElement("ul");
+        if (typeof graphMetadata["schema_version"] === "string") {
+            const li = document.createElement("li");
+            li.textContent = `Schema version ${graphMetadata["schema_version"]}`;
+            metadataListEl.appendChild(li);
+        }
+        if (typeof graphMetadata["app_version"] === "string") {
+            const li = document.createElement("li");
+            li.textContent = `refgraph version ${graphMetadata["app_version"]}`;
+            metadataListEl.appendChild(li);
+        }
+        metadataContainerEl.appendChild(metadataListEl);
+
+        // Base64-decode the graph data and parse it as JSON.
+        try {
+            const graphDataJsonStr = atob(graphDataJsonStrBase64);
+            graphData = JSON.parse(graphDataJsonStr);
+            console.debug("graphData", graphData);
+        } catch (error) {
+            alert("Failed to parse reference data.");
+            console.debug("graphDataJsonStrBase64", graphDataJsonStrBase64);
+            console.error(error);
+        }
+
+        // Display the graph on the web page.
         const cy = window.cytoscape({
             container: document.getElementById("graph-container"),
             elements: graphData,
