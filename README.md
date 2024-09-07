@@ -47,6 +47,8 @@ graph LR
   * [Building and publishing](#building-and-publishing)
     * [Build for production](#build-for-production)
     * [Test the build process locally](#test-the-build-process-locally)
+  * [Appendix](#appendix)
+    * [refgraph](#refgraph)
 <!-- TOC -->
 
 ## How it works
@@ -308,3 +310,20 @@ poetry build
 > file (whose name ends with `.tar.gz`) and a
 > [wheel](https://packaging.python.org/en/latest/specifications/binary-distribution-format/#binary-distribution-format)
 > file (whose name ends with `.whl`) in the `dist` directory.
+
+## Appendix
+
+### refgraph
+
+When `pipx` installs `refscan`, it also installs a program called `refgraph`. `refgraph` is a program you can use to
+generate a web-based, interactive graph (network diagram) of the relationships that can exist between documents in a
+database that conforms to a given schema. It can present the relationships in terms of either database collections
+or schema classes.
+
+You can learn more about `refgraph` by running:
+
+```shell
+refgraph --help
+```
+
+> Note: `refgraph` is still in early development and its features and CLI are subject to change.
