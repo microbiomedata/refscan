@@ -100,7 +100,7 @@
             container: document.getElementById("graph-container"),
             elements: graphData,
             layout: {
-                name: "circle" // Options include: "circle", "grid", and maybe others
+                name: "circle" // For other options, see: https://js.cytoscape.org/#layouts
             },
             style: [
                 {
@@ -113,6 +113,8 @@
                 {
                     selector: "edge",
                     style: {
+                        fontSize: "0.75em",
+                        textRotation: "autorotate", // parallel to the edge
                         lineColor: "#999999",
                         targetArrowColor: "#999999",
                         targetArrowShape: "triangle",
@@ -131,6 +133,7 @@
                 {
                     selector: "edge.outgoer",
                     style: {
+                        label: "data(label)",
                         lineColor: "#00FF00",
                         targetArrowColor: "#00FF00",
                         width: 3,
@@ -147,6 +150,7 @@
                 {
                     selector: "edge.incomer",
                     style: {
+                        label: "data(label)",
                         lineColor: "#FFA500",
                         targetArrowColor: "#FFA500",
                         width: 3,

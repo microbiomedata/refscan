@@ -181,7 +181,20 @@ def graph(
         edge_id = f"{source_name}__to__{target_name}"
         edge_ids = [e["data"]["id"] for e in edges]
         if edge_id not in edge_ids:
-            edges.append(dict(data=dict(id=edge_id, source=source_name, target=target_name)))
+            edge = dict(data=dict(id=edge_id, source=source_name, target=target_name, source_fields=[]))
+            edges.append(edge)
+
+        # Ensure this edge's `data.source_fields` list accounts for this reference's source field name.
+        edge = next(e for e in edges if e["data"]["id"] == edge_id)  # gets the matching edge
+        if r.source_field_name not in edge["data"]["source_fields"]:  # avoids repeating the field name
+            edge["data"]["source_fields"].append(r.source_field_name)
+
+    # Replace each edge's `source_fields` property with a `label` property containing a comma-delimited string.
+    # Example: if `source_fields` contains ["a", "b", "c"] -> `label` will contain "a, b, c"
+    # Reference: https://docs.python.org/3/library/stdtypes.html#dict.pop
+    for edge in edges:
+        source_fields: list = edge["data"].pop("source_fields", [])  # removes the `source_fields` property
+        edge["data"]["label"] = ", ".join(source_fields)
 
     console.print(f"Nodes: {len(nodes)}")
     console.print(f"Edges: {len(edges)}")
