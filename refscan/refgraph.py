@@ -41,7 +41,7 @@ def load_template(resource_path: str) -> str:
           that the path is accurate both when this script is run in a development
           environment and when this script is run when installed from PyPI,
           instead of it only being accurate in the former case.
-          Reference: https://docs.python.org/3.10/library/importlib.html
+          Reference: https://docs.python.org/3.9/library/importlib.html#importlib.resources.files
     """
     package_name = "refscan"
     return resources.files(package_name).joinpath(resource_path).read_text(encoding="utf-8")
