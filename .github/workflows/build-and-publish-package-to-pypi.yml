@@ -20,7 +20,7 @@ jobs:
         with:
           # Specify a Python version that satisfies the `tool.poetry.dependencies.python`
           # version requirement specified in `pyproject.toml`.
-          python-version: '3.10'
+          python-version: '3.9'
       - name: Install Poetry  # Docs: https://github.com/snok/install-poetry
         uses: snok/install-poetry@v1
       - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
