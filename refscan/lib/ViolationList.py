@@ -1,3 +1,4 @@
+from typing import Union
 from pathlib import Path
 from dataclasses import fields, astuple
 from collections import UserList
@@ -12,7 +13,7 @@ class ViolationList(UserList):
     """
 
     def dump_to_tsv_file(
-        self, file_path: str | Path, include_name_of_collection_containing_target: bool = True
+        self, file_path: Union[str, Path], include_name_of_collection_containing_target: bool = True
     ) -> None:
         """
         Helper function that dumps the violations to a TSV file at the specified path.

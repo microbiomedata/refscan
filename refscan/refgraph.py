@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from typing_extensions import Annotated
 import json
 import base64
@@ -47,7 +47,7 @@ def load_template(resource_path: str) -> str:
     return resources.files(package_name).joinpath(resource_path).read_text(encoding="utf-8")
 
 
-def encode_json_value_as_base64_str(json_value: dict | list) -> str:
+def encode_json_value_as_base64_str(json_value: Union[dict, list]) -> str:
     r"""Helper function that encodes the specified JSON value as a base64 string."""
 
     value_as_string = json.dumps(json_value)

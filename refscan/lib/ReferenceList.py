@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 from pathlib import Path
 from dataclasses import fields, astuple
 from collections import UserList
@@ -88,7 +88,7 @@ class ReferenceList(UserList):
         groups = groupby(sorted(self.data), key=make_group_key)
         return groups
 
-    def dump_to_tsv_file(self, file_path: str | Path) -> None:
+    def dump_to_tsv_file(self, file_path: Union[str, Path]) -> None:
         r"""
         Helper function that dumps the references to a TSV file at the specified path.
         """
