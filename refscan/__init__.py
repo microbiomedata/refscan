@@ -1,4 +1,4 @@
-from importlib.metadata import metadata, PackageMetadata, PackageNotFoundError
+from importlib.metadata import metadata, PackageNotFoundError
 
 
 def get_package_metadata(key: str) -> str:
@@ -11,7 +11,7 @@ def get_package_metadata(key: str) -> str:
     """
     metadata_value = ""
     try:
-        package_metadata: PackageMetadata = metadata("refscan")
+        package_metadata = metadata("refscan")
         metadata_value = package_metadata.get(key)
     except PackageNotFoundError:
         pass
