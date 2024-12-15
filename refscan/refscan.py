@@ -334,6 +334,7 @@ def scan(
 
                                 violation = Violation(
                                     source_collection_name=source_collection_name,
+                                    source_class_name=source_class_name,
                                     source_field_name=field_name,
                                     source_document_object_id=source_document_object_id,
                                     source_document_id=source_document_id,
