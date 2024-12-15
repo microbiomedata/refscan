@@ -9,6 +9,7 @@ class Violation:
     """
 
     source_collection_name: str = field()
+    source_class_name: str = field()
     source_field_name: str = field()
     source_document_object_id: str = field()
     source_document_id: str = field()
