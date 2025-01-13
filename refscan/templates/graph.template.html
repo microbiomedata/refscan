@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>refgraph</title>
+    <title>refscan graph</title>
     <style>
         #graph-container {
             width: 100%;
@@ -79,7 +79,7 @@
         }
         if (typeof graphMetadata["app_version"] === "string") {
             const li = document.createElement("li");
-            li.textContent = `refgraph version ${graphMetadata["app_version"]}`;
+            li.textContent = `refscan version ${graphMetadata["app_version"]}`;
             metadataListEl.appendChild(li);
         }
         metadataContainerEl.appendChild(metadataListEl);

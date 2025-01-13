@@ -1,6 +1,6 @@
 # refscan
 
-`refscan` is a command-line tool people can use to scan the [NMDC](https://microbiomedata.org/) MongoDB database
+`refscan` is a command-line tool people can use to **scan** the [NMDC](https://microbiomedata.org/) MongoDB database
 for referential integrity violations.
 
 ```mermaid
@@ -10,7 +10,7 @@ for referential integrity violations.
 graph LR
     schema[LinkML<br>schema]
     database[(MongoDB<br>database)]
-    script[["refscan.py"]]
+    script[["refscan"]]
     violations["List of<br>violations"]
     references["List of<br>references"]:::dashed_border
     schema --> script
@@ -21,39 +21,20 @@ graph LR
     classDef dashed_border stroke-dasharray: 5 5
 ```
 
-## Table of contents
+In addition to using refscan to scan the NMDC MongoDB database for referential integrity violations,
+people can use `refscan` to generate **graphs** (diagrams) depicting which collections' documents (or which classes'
+instances) can contain references to which _other_ collections' documents (or classes' instances) while still being
+schema compliant.
 
-<!-- TOC -->
-* [refscan](#refscan)
-  * [Table of contents](#table-of-contents)
-  * [How it works](#how-it-works)
-  * [Limitations](#limitations)
-  * [Usage](#usage)
-    * [Install](#install)
-    * [Run](#run)
-      * [The MongoDB connection string (`--mongo-uri`)](#the-mongodb-connection-string---mongo-uri)
-      * [The schema (`--schema`)](#the-schema---schema)
-      * [Output](#output)
-    * [Update](#update)
-    * [Uninstall](#uninstall)
-  * [Development](#development)
-    * [Clone repository](#clone-repository)
-    * [Create virtual environment](#create-virtual-environment)
-    * [Install dependencies](#install-dependencies)
-    * [Make changes](#make-changes)
-    * [Run tests](#run-tests)
-    * [Format code](#format-code)
-      * [Check format](#check-format)
-  * [Building and publishing](#building-and-publishing)
-    * [Build for production](#build-for-production)
-    * [Test the build process locally](#test-the-build-process-locally)
-  * [Appendix](#appendix)
-    * [refgraph](#refgraph)
-<!-- TOC -->
+<!-- Note: We removed the hard-coded Table of Contents because—nowadays—GitHub automatically derives/presents one. -->
 
 ## How it works
 
-`refscan` does its job in two stages:
+Here is a summary of how each of `refscan`'s main functions works under the hood.
+
+### Scan
+
+`refscan` does this in two stages:
 1. It uses the LinkML schema to determine where references _can_ exist in a MongoDB database that conforms to the schema.
    > **Example:** The schema might say that, if a document in the `biosample_set` collection has a field named
    > `associated_studies`, that field must contain a list of `id`s of documents in the `study_set` collection.
@@ -61,12 +42,19 @@ graph LR
    > **Example:** For each document in the `biosample_set` collection that _has_ a field named `associated_studies`,
    > for each value in that field, confirm there _is_ a document having that `id` in the `study_set` collection.
 
-## Limitations
+### Graph
+
+`refscan` does this in three stages:
+1. It uses the LinkML schema to determine where references _can_ exist in a MongoDB database that conforms to the schema.
+2. It formats that list of references into a data structure compatible with [`Cytoscape.js`](https://js.cytoscape.org/).
+3. It outputs an HTML document that uses `Cytoscape.js` to visualize that data structure as a graph.
+
+## Assumptions
 
 `refscan` was designed under the assumption that **every document** in **every collection described by the schema** has
 a **field named `type`**, whose value is the [class_uri](https://linkml.io/linkml/code/metamodel.html#linkml_runtime.linkml_model.meta.ClassDefinition.class_uri) of the schema class the document represents an instance
-of. `refscan` uses that `class_uri` value (in that `type` field) to determine the name of that schema class,
-which it, in turn, uses to determine _which fields_ of that document can contain references.
+of. `refscan` uses that `class_uri` value (in that `type` field) to determine the _name_ of that schema class,
+whose definition `refscan` then uses to determine _which fields_ of that document can contain references.
 
 ## Usage
 
@@ -85,7 +73,7 @@ pipx install refscan
 
 ### Run
 
-You can display the tool's `--help` snippet by running:
+Once installed, you can display the tool's `--help` snippet by running:
 
 ```shell
 refscan --help
@@ -94,9 +82,30 @@ refscan --help
 At the time of this writing, the tool's `--help` snippet is:
 
 ```console
- Usage: refscan [OPTIONS]
+ Usage: refscan [OPTIONS] COMMAND [ARGS]...
 
- Scans the NMDC MongoDB database for referential integrity violations.
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ─────────────────────────────────────────────────────────────────────────────╮
+│ version   Show version number and exit.                                                │
+│ scan      Scan the NMDC MongoDB database for referential integrity violations.         │
+│ graph     Generate an interactive graph of the references described by a schema.       │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+<!-- Note: The above snippet was captured from a terminal window whose width was 90 characters. -->
+
+Each command has its own `--help` snippet.
+
+#### The `scan` command
+
+At the time of this writing, the `--help` snippet for the `scan` command is:
+
+```console
+ Usage: refscan scan [OPTIONS]
+
+ Scan the NMDC MongoDB database for referential integrity violations.
 
 ╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
 │ *  --schema                               FILE  Filesystem path at which the YAML file │
@@ -126,7 +135,6 @@ At the time of this writing, the tool's `--help` snippet is:
 │                                                 program to generate its violation      │
 │                                                 report.                                │
 │                                                 [default: violations.tsv]              │
-│    --version                                    Show version number and exit.          │
 │    --no-scan                                    Generate a reference report, but do    │
 │                                                 not scan the database for violations.  │
 │    --locate-misplaced-documents                 For each referenced document not found │
@@ -137,9 +145,9 @@ At the time of this writing, the tool's `--help` snippet is:
 ╰────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-> Note: The above snippet was captured from a terminal window whose width was 90 characters.
+<!-- Note: The above snippet was captured from a terminal window whose width was 90 characters. -->
 
-#### The MongoDB connection string (`--mongo-uri`)
+##### The MongoDB connection string (`--mongo-uri`)
 
 As documented in the `--help` snippet above, you can provide the MongoDB connection string to the tool via either
 (a) the `--mongo-uri` option; or (b) an environment variable named `MONGO_URI`. The latter can come in handy
@@ -152,7 +160,7 @@ Here's how you could create that environment variable:
 export MONGO_URI='mongodb://username:password@localhost:27017'
 ```
 
-#### The schema (`--schema`)
+##### The schema (`--schema`)
 
 As documented in the `--help` snippet above, you can provide the path to a YAML-formatted LinkML schema file to the tool
 via the `--schema` option.
@@ -176,14 +184,17 @@ curl -o schema.yaml https://raw.githubusercontent.com/{user_or_org}/{repo}/{bran
 For example:
 
 ```shell
-# Download the raw content of https://github.com/microbiomedata/berkeley-schema-fy24/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
-curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/berkeley-schema-fy24/main/nmdc_schema/nmdc_materialized_patterns.yaml
+# Download the raw content of https://github.com/microbiomedata/nmdc-schema/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/main/nmdc_schema/nmdc_materialized_patterns.yaml
+
+# Download the raw content of https://github.com/microbiomedata/nmdc-schema/blob/v11.2.1/nmdc_schema/nmdc_materialized_patterns.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/v11.2.1/nmdc_schema/nmdc_materialized_patterns.yaml
 ```
 
 ---
 </details>
 
-#### Output
+##### Output
 
 While `refscan` is running, it will display console output indicating what it's currently doing.
 
@@ -191,6 +202,33 @@ While `refscan` is running, it will display console output indicating what it's 
 
 Once the scan is complete, the reference report (TSV file) and violation report (TSV file) will be available
 in the current directory (or in custom directories, if any were specified via CLI options).
+
+#### The `graph` command
+
+At the time of this writing, the `--help` snippet for the `graph` command is:
+
+```console
+ Usage: refscan graph [OPTIONS]
+
+ Generate an interactive graph of the references described by a schema.
+
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ *  --schema         FILE                Filesystem path at which the YAML file         │
+│                                         representing the schema is located.            │
+│                                         [default: None]                                │
+│                                         [required]                                     │
+│    --graph          FILE                Filesystem path at which you want refscan to   │
+│                                         generate the graph.                            │
+│                                         [default: graph.html]                          │
+│    --subject        [collection|class]  Whether you want each node of the graph to     │
+│                                         represent a collection or a class.             │
+│                                         [default: collection]                          │
+│    --verbose                            Show verbose output.                           │
+│    --help                               Show this message and exit.                    │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+<!-- Note: The above snippet was captured from a terminal window whose width was 90 characters. -->
 
 ### Update
 
@@ -251,7 +289,7 @@ Edit the tool's source code and documentation however you want.
 While editing the tool's source code, you can run the tool as you normally would in order to test things out.
 
 ```shell
-refscan --help
+poetry run refscan --help
 ```
 
 ### Run tests
@@ -310,20 +348,3 @@ poetry build
 > file (whose name ends with `.tar.gz`) and a
 > [wheel](https://packaging.python.org/en/latest/specifications/binary-distribution-format/#binary-distribution-format)
 > file (whose name ends with `.whl`) in the `dist` directory.
-
-## Appendix
-
-### refgraph
-
-When `pipx` installs `refscan`, it also installs a program called `refgraph`. `refgraph` is a program you can use to
-generate a web-based, interactive graph (network diagram) of the relationships that can exist between documents in a
-database that conforms to a given schema. It can present the relationships in terms of either database collections
-or schema classes.
-
-You can learn more about `refgraph` by running:
-
-```shell
-refgraph --help
-```
-
-> Note: `refgraph` is still in early development and its features and CLI are subject to change.

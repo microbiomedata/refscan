@@ -1,4 +1,4 @@
-from refscan.refgraph import load_template
+from refscan.grapher import load_template
 
 
 def test_load_template():
