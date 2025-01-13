@@ -217,7 +217,7 @@ At the time of this writing, the `--help` snippet for the `graph` command is:
 │                                         representing the schema is located.            │
 │                                         [default: None]                                │
 │                                         [required]                                     │
-│    --graph          FILE                Filesystem path at which you want refgraph to  │
+│    --graph          FILE                Filesystem path at which you want refscan to   │
 │                                         generate the graph.                            │
 │                                         [default: graph.html]                          │
 │    --subject        [collection|class]  Whether you want each node of the graph to     │

@@ -31,7 +31,7 @@ def graph(
             writable=True,
             readable=False,
             resolve_path=True,
-            help="Filesystem path at which you want **refgraph** to generate the graph.",
+            help="Filesystem path at which you want **refscan** to generate the graph.",
         ),
     ] = "graph.html",
     subject: Annotated[
