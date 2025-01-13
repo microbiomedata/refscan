@@ -15,6 +15,100 @@ from refscan.lib.ViolationList import ViolationList
 from refscan.lib.constants import console as default_console
 
 
+def scan_outgoing_references(
+    document: dict,
+    schema_view: SchemaView,
+    # TODO: Cache this dictionary, since it is derived from the schema alone.
+    reference_field_names_by_source_class_name: Dict[str, List[str]],
+    references: ReferenceList,
+    finder: Finder,
+    collection_names: List[str],
+    source_collection_name: str,
+    user_wants_to_locate_misplaced_documents: bool = False,
+) -> ViolationList:
+    r"""
+    Scans the references emanating from the specified document, for referential integrity violations. In other words,
+    checks whether all documents references by this one exist in places the schema allows them to exist.
+
+    :param document: The source document from which the references emanate
+    :param schema_view: A SchemaView bound to the schema
+    :param reference_field_names_by_source_class_name: Dictionary mapping class names to lists of reference field names
+    :param references: A `ReferenceList` derived from the schema
+    :param finder: A `Finder` bound to the database being scanned
+    :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
+                                                     collections after failing to find the referenced document among
+                                                     all the legal collections
+    :param source_collection_name: Name of collection in which source document resides (this is included in the
+                                   violation report in an attempt to facilitate investigation of violations)
+    :param collection_names: List of collection names that are described by the schema
+    """
+
+    # Initialize a list of violations.
+    violations = ViolationList()
+
+    # Get the document's `id` so that we can include it in this script's output.
+    source_document_object_id = document["_id"]
+    source_document_id = document["id"] if "id" in document else None
+
+    # Get the document's schema class name so that we can interpret its fields accordingly.
+    source_class_name = derive_schema_class_name_from_document(schema_view, document)
+
+    # Get the names of that class's fields that can contain references.
+    names_of_reference_fields = reference_field_names_by_source_class_name.get(source_class_name, [])
+
+    # Check each field that both (a) exists in the document and (b) can contain a reference.
+    for field_name in names_of_reference_fields:
+        if field_name in document:
+            # Determine which collections can contain the referenced document, based upon
+            # the schema class of which this source document is an instance.
+            target_collection_names = references.get_target_collection_names(
+                source_class_name=source_class_name,
+                source_field_name=field_name,
+            )
+
+            # Handle both the multi-value (array) and the single-value (scalar) case,
+            # normalizing the value or values into a list of values in either case.
+            if type(document[field_name]) is list:
+                target_ids = document[field_name]
+            else:
+                target_id = document[field_name]
+                target_ids = [target_id]  # makes a one-item list
+
+            for target_id in target_ids:
+                name_of_collection_containing_target_document = (
+                    finder.check_whether_document_having_id_exists_among_collections(
+                        collection_names=target_collection_names, document_id=target_id
+                    )
+                )
+                if name_of_collection_containing_target_document is None:
+
+                    # If the user wants to locate misplaced documents,
+                    # search all illegal collections for the misplaced document.
+                    if user_wants_to_locate_misplaced_documents:
+                        names_of_ineligible_collections = list(set(collection_names) - set(target_collection_names))
+                        name_of_collection_containing_target_document = (
+                            finder.check_whether_document_having_id_exists_among_collections(
+                                collection_names=names_of_ineligible_collections, document_id=target_id
+                            )
+                        )
+
+                    # Instantiate a `Violation` containing information about this referential integrity violation.
+                    violation = Violation(
+                        source_collection_name=source_collection_name,
+                        source_class_name=source_class_name,
+                        source_field_name=field_name,
+                        source_document_object_id=source_document_object_id,
+                        source_document_id=source_document_id,
+                        target_id=target_id,
+                        name_of_collection_containing_target=name_of_collection_containing_target_document,
+                    )
+
+                    # Append this violation to the list of this document's violations.
+                    violations.append(violation)
+
+    return violations
+
+
 def scan(
     db: Database,
     schema_view: SchemaView,
@@ -22,12 +116,24 @@ def scan(
     collection_names: List[str],
     names_of_source_collections_to_skip: List[str],
     user_wants_to_locate_misplaced_documents: bool = False,
+    console: Console = default_console,
     verbose: bool = False,
-    console: Optional[Console] = default_console,
 ) -> Dict[str, ViolationList]:
     """
     Scans the NMDC MongoDB database for referential integrity violations according to the parameters passed in,
-    returning a list of violations for each collection scanned.
+    returning a dictionary containing a list of violations for each collection scanned.
+
+    :param db: Database you want to scan for referential integrity violations
+    :param schema_view: A SchemaView bound to the schema with which that database complies
+                        (except that it may not be compliant in terms of referential integrity)
+    :param references: A `ReferenceList` derived from the schema
+    :param collection_names: List of collection names that are described by the schema
+    :param names_of_source_collections_to_skip: List of source collections to skip
+    :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
+                                                     collections after failing to find the referenced document among
+                                                     all the legal collections
+    :param console: A `Console` to which the function can print messages
+    :param verbose: Whether you want the function to print a higher-than-normal amount of information to the console
     """
 
     # Get a dictionary that maps source class names to the names of their fields that can contain references.
@@ -109,69 +215,28 @@ def scan(
 
             # Process each relevant document.
             for document in collection.find(query_filter, projection=query_projection):
+                violations = scan_outgoing_references(
+                    document=document,
+                    schema_view=schema_view,
+                    reference_field_names_by_source_class_name=reference_field_names_by_source_class_name,
+                    references=references,
+                    finder=finder,
+                    collection_names=collection_names,
+                    source_collection_name=source_collection_name,
+                    user_wants_to_locate_misplaced_documents=user_wants_to_locate_misplaced_documents,
+                )
 
-                # Get the document's `id` so that we can include it in this script's output.
-                source_document_object_id = document["_id"]
-                source_document_id = document["id"] if "id" in document else None
+                # Add these violations—if any—to the list for this source collection.
+                source_collections_and_their_violations[source_collection_name].extend(violations)
 
-                # Get the document's schema class name so that we can interpret its fields accordingly.
-                source_class_name = derive_schema_class_name_from_document(schema_view, document)
-
-                # Get the names of that class's fields that can contain references.
-                names_of_reference_fields = reference_field_names_by_source_class_name.get(source_class_name, [])
-
-                # Check each field that both (a) exists in the document and (b) can contain a reference.
-                for field_name in names_of_reference_fields:
-                    if field_name in document:
-                        # Determine which collections can contain the referenced document, based upon
-                        # the schema class of which this source document is an instance.
-                        target_collection_names = references.get_target_collection_names(
-                            source_class_name=source_class_name,
-                            source_field_name=field_name,
+                # If operating verbosely, print a message about each violation.
+                if verbose:
+                    for violation in violations:
+                        console.print(
+                            f"Failed to find document having `id` '{violation.target_id}' "
+                            f"among collections allowed by schema. "
+                            f"{violation=}"
                         )
-
-                        # Handle both the multi-value (array) and the single-value (scalar) case,
-                        # normalizing the value or values into a list of values in either case.
-                        if type(document[field_name]) is list:
-                            target_ids = document[field_name]
-                        else:
-                            target_id = document[field_name]
-                            target_ids = [target_id]  # makes a one-item list
-
-                        for target_id in target_ids:
-                            name_of_collection_containing_target_document = (
-                                finder.check_whether_document_having_id_exists_among_collections(
-                                    collection_names=target_collection_names, document_id=target_id
-                                )
-                            )
-                            if name_of_collection_containing_target_document is None:
-
-                                if user_wants_to_locate_misplaced_documents:
-                                    names_of_ineligible_collections = list(
-                                        set(collection_names) - set(target_collection_names)
-                                    )
-                                    name_of_collection_containing_target_document = (
-                                        finder.check_whether_document_having_id_exists_among_collections(
-                                            collection_names=names_of_ineligible_collections, document_id=target_id
-                                        )
-                                    )
-
-                                violation = Violation(
-                                    source_collection_name=source_collection_name,
-                                    source_class_name=source_class_name,
-                                    source_field_name=field_name,
-                                    source_document_object_id=source_document_object_id,
-                                    source_document_id=source_document_id,
-                                    target_id=target_id,
-                                    name_of_collection_containing_target=name_of_collection_containing_target_document,
-                                )
-                                source_collections_and_their_violations[source_collection_name].append(violation)
-                                if verbose:
-                                    console.print(
-                                        f"Failed to find document having `id` '{target_id}' "
-                                        f"among collections: {target_collection_names}. "
-                                        f"{violation=}"
-                                    )
 
                 # Advance the progress bar to account for the current document's contribution to the violations count.
                 progress.update(
