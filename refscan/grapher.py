@@ -1,12 +1,10 @@
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Union
-from typing_extensions import Annotated
+from typing import Union
 import json
 import base64
 from importlib import resources
 
-import typer
 import linkml_runtime
 
 from refscan import get_package_metadata
@@ -16,13 +14,6 @@ from refscan.lib.helpers import (
     get_collection_names_from_schema,
     get_names_of_classes_eligible_for_collection,
     identify_references,
-)
-from refscan.refscan import display_app_version_and_exit
-
-app = typer.Typer(
-    help="Generates an interactive graph (network diagram) of the references described by a schema.",
-    add_completion=False,  # hides the shell completion options from `--help` output
-    rich_markup_mode="markdown",  # enables use of Markdown in docstrings and CLI help
 )
 
 
@@ -57,69 +48,14 @@ def encode_json_value_as_base64_str(json_value: Union[dict, list]) -> str:
     return encoded_bytes_as_string
 
 
-@app.command("graph")
 def graph(
-    # Reference: https://typer.tiangolo.com/tutorial/parameter-types/path/
-    schema_file_path: Annotated[
-        Path,
-        typer.Option(
-            "--schema",
-            dir_okay=False,
-            writable=False,
-            readable=True,
-            resolve_path=True,
-            help="Filesystem path at which the YAML file representing the schema is located.",
-        ),
-    ],
-    graph_file_path: Annotated[
-        Optional[Path],
-        typer.Option(
-            "--graph",
-            dir_okay=False,
-            writable=True,
-            readable=False,
-            resolve_path=True,
-            help="Filesystem path at which you want **refgraph** to generate the graph.",
-        ),
-    ] = "graph.html",
-    subject: Annotated[
-        Subject,
-        typer.Option(
-            "--subject",
-            case_sensitive=False,
-            help="Whether you want each node of the graph to represent a collection or a class.",
-        ),
-    ] = Subject.collection,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            help="Show verbose output.",
-        ),
-    ] = False,
-    version: Annotated[
-        Optional[bool],
-        typer.Option(
-            "--version",
-            callback=display_app_version_and_exit,
-            is_eager=True,  # tells Typer to process this option first
-            help="Show version number and exit.",
-        ),
-    ] = None,
-):
+    schema_view: linkml_runtime.SchemaView,
+    subject: Subject,
+    verbose: bool = False,
+) -> str:
     r"""
     Generates an interactive graph (network diagram) of the references described by a schema.
     """
-
-    print_section_header(console, text="Reading schema")
-
-    # Instantiate a `linkml_runtime.SchemaView` bound to the specified schema.
-    if verbose:
-        console.print(f"Schema YAML file: {schema_file_path}")
-    schema_view = linkml_runtime.SchemaView(schema_file_path)
-
-    # Show high-level information about the schema.
-    console.print(f"Schema version: {schema_view.schema.version}")
 
     # Show a header on the console, to tell the user which stage of execution we're entering.
     print_section_header(console, text="Identifying references")
@@ -216,15 +152,4 @@ def graph(
     html_result = html_template.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)
     html_result = html_result.replace("{{ graph_metadata_json_base64 }}", graph_metadata_json_base64_str)
 
-    if verbose:
-        console.print(html_result)
-
-    with open(graph_file_path, "w") as f:
-        f.write(html_result)
-
-    console.print(f"Graph generated at: {graph_file_path}")
-    console.print()
-
-
-if __name__ == "__main__":
-    app()
+    return html_result

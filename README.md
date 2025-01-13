@@ -176,8 +176,8 @@ curl -o schema.yaml https://raw.githubusercontent.com/{user_or_org}/{repo}/{bran
 For example:
 
 ```shell
-# Download the raw content of https://github.com/microbiomedata/berkeley-schema-fy24/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
-curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/berkeley-schema-fy24/main/nmdc_schema/nmdc_materialized_patterns.yaml
+# Download the raw content of https://github.com/microbiomedata/nmdc-schema/blob/main/nmdc_schema/nmdc_materialized_patterns.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/main/nmdc_schema/nmdc_materialized_patterns.yaml
 ```
 
 ---
