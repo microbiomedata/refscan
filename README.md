@@ -188,7 +188,7 @@ For example:
 curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/main/nmdc_schema/nmdc_materialized_patterns.yaml
 
 # Download the raw content of https://github.com/microbiomedata/nmdc-schema/blob/v11.2.1/nmdc_schema/nmdc_materialized_patterns.yaml
-curl -o delme.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/v11.2.1/nmdc_schema/nmdc_materialized_patterns.yaml
+curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema/v11.2.1/nmdc_schema/nmdc_materialized_patterns.yaml
 ```
 
 ---
