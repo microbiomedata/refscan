@@ -14,7 +14,7 @@ def test_graph_command_with_valid_schema():
     """Test the `graph` command with a valid schema file."""
     runner = CliRunner()
     schema_path = Path("tests/schemas/database_with_references.yaml")
-    output_path = Path("/tmp/graph.html")
+    output_path = Path("graph.html")
 
     result = runner.invoke(app, [
         "graph",
@@ -36,7 +36,7 @@ def test_graph_command_with_custom_output_path():
     """Test the `graph` command with a custom output file path."""
     runner = CliRunner()
     schema_path = Path("tests/schemas/database_with_references.yaml")
-    custom_output_path = Path("/tmp/custom_graph.html")
+    custom_output_path = Path("custom_graph.html")
 
     result = runner.invoke(app, [
         "graph",
