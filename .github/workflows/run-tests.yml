@@ -27,6 +27,6 @@ jobs:
       - name: Run tests
         run: |
           # For debug: Dump color information to the console.
-          python -m rich.color
+          poetry run python -m rich.color
           # Run the tests.
           poetry run pytest -vv --color=yes
