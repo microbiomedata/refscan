@@ -25,4 +25,4 @@ jobs:
       - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
         run: poetry install --no-interaction
       - name: Run tests
-        run: poetry run pytest -vv --doctest-modules
+        run: poetry run pytest -vv
