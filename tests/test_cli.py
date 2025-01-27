@@ -60,7 +60,18 @@ def test_graph_command_with_custom_output_path():
 
 def test_graph_command_help():
     """Test the `graph` command with the --help flag."""
-    runner = CliRunner()
+
+    # Note: For this test, we define an environment variable (in the context of the `CliRunner`) named `TERM` having
+    #       a value `"unknown"`. When Rich "sees" that environment variable, Rich will refrain from coloring its output.
+    #       The reason we influence Rich in this way here is that, when we don't, this test fails when run via GitHub
+    #       Actions. I think it has to do with the fact that GitHub Actions Runners do not allocate a TTY.
+    #
+    # References:
+    # - https://click.palletsprojects.com/en/stable/api/#click.testing.CliRunner (re: the `env` kwarg)
+    # - https://rich.readthedocs.io/en/stable/console.html#environment-variables (re: the `TERM` environment variable)
+    # - https://github.com/actions/runner/issues/241 (re: GHA Runners not allocating a TTY)
+    #
+    runner = CliRunner(env=dict(TERM="unknown"))
     result = runner.invoke(app, ["graph", "--help"])
 
     assert result.exit_code == 0, f"Unexpected exit code: {result.exit_code}"

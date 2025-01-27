@@ -1,0 +1,29 @@
+# GitHub Actions workflow that runs tests.
+# Reference: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
+name: Run tests
+
+on:
+  pull_request: { branches: [ main ] }
+  push: { branches: [ main ] }
+  workflow_dispatch: { }
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out commit  # Docs: https://github.com/actions/checkout
+        uses: actions/checkout@v4
+      - name: Set up Python  # Docs: https://github.com/actions/setup-python
+        uses: actions/setup-python@v5
+        with:
+          # Specify a Python version that satisfies the `tool.poetry.dependencies.python`
+          # version requirement specified in `pyproject.toml`.
+          python-version: '3.9'
+      - name: Install Poetry  # Docs: https://github.com/snok/install-poetry
+        uses: snok/install-poetry@v1
+      - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
+        run: poetry install --no-interaction
+      - name: Run tests
+        run: |
+          poetry run pytest -vv --color=yes
