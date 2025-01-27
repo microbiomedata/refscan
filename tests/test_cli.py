@@ -61,18 +61,18 @@ def test_graph_command_with_custom_output_path():
 def test_graph_command_help():
     """Test the `graph` command with the --help flag."""
 
-    # Note: For this test, we define an environment variable (in the context of the `CliRunner`) named `NO_COLOR`. When
-    #       Rich "sees" that environment variable, Rich will refrain from colorizing its output (you can define an
-    #       environment variable named `FORCE_COLOR` to influence Rich in the opposite way). The reason we influence
-    #       Rich in this way here is that, when we don't, this test fails when run via GitHub Actions. I think it has
-    #       to do with the fact that GitHub Actions Runners do not allocate a TTY.
+    # Note: For this test, we define an environment variable (in the context of the `CliRunner`) named `NO_COLOR` having
+    #       a value that is not an empty string. When Rich "sees" that environment variable, Rich will refrain from
+    #       colorizing its output (you can define an environment variable named `FORCE_COLOR` to influence Rich in the
+    #       opposite way). The reason we influence Rich in this way here is that, when we don't, this test fails when
+    #       run via GitHub Actions. I think it has to do with the fact that GitHub Actions Runners do not allocate TTYs.
     #
     # References:
     # - https://click.palletsprojects.com/en/stable/api/#click.testing.CliRunner (re: the `env` kwarg)
     # - https://rich.readthedocs.io/en/stable/console.html#environment-variables (re: `FORCE_COLOR` and `NO_COLOR`)
-    # - https://github.com/actions/runner/issues/241 (re: GHA Runners not allocating a TTY)
+    # - https://github.com/actions/runner/issues/241 (re: GHA Runners not allocating TTYs)
     #
-    runner = CliRunner(env=dict(NO_COLOR=""))
+    runner = CliRunner(env=dict(NO_COLOR="NO_COLOR"))
     result = runner.invoke(app, ["graph", "--help"])
 
     assert result.exit_code == 0, f"Unexpected exit code: {result.exit_code}"
