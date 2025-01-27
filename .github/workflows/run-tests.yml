@@ -25,4 +25,8 @@ jobs:
       - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
         run: poetry install --no-interaction
       - name: Run tests
-        run: poetry run pytest -vv --color=yes
+        run: |
+          # For debug: Dump color information to the console.
+          python -m rich.color
+          # Run the tests.
+          poetry run pytest -vv --color=yes
