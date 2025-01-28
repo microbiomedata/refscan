@@ -6,9 +6,12 @@ on:
   pull_request: { branches: [ main ] }
   push: { branches: [ main ] }
   workflow_dispatch: { }
+  # Allow this workflow to be called by other workflows.
+  # Reference: https://docs.github.com/en/actions/using-workflows/reusing-workflows
+  workflow_call: { }
 
 jobs:
-  test:
+  run-tests:
     name: Run tests
     runs-on: ubuntu-latest
     steps:
