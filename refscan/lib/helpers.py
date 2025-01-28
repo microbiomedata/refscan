@@ -59,8 +59,9 @@ def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collec
     according to the specified `SchemaView`.
     """
     slot_definition = schema_view.induced_slot(collection_name, DATABASE_CLASS_NAME)
-    name_of_eligible_class = slot_definition.range
-    names_of_eligible_classes = schema_view.class_descendants(name_of_eligible_class)  # includes own class name
+    names_of_eligible_classes = get_names_of_classes_in_effective_range_of_slot(
+        schema_view=schema_view, slot_definition=slot_definition
+    )
     return names_of_eligible_classes
 
 

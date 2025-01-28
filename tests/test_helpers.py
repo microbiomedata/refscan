@@ -49,6 +49,22 @@ def test_get_names_of_classes_eligible_for_collection():
     assert "Biosample" in collection_names
     assert "MaterialEntity" in collection_names
 
+    # Ensure the function correctly handles `Database` slots that use `any_of` to define their ranges.
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_class_with_any_of.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    collection_names = get_names_of_classes_eligible_for_collection(schema_view, "flexible_set")
+    assert len(collection_names) == 4
+    assert "Food" in collection_names
+    assert "Fruit" in collection_names
+    assert "Veggie" in collection_names
+    assert "Carrot" in collection_names
+
+    collection_names = get_names_of_classes_eligible_for_collection(schema_view, "rigid_set")
+    assert len(collection_names) == 2
+    assert "Fruit" in collection_names
+    assert "Carrot" in collection_names
+
 
 def test_get_names_of_classes_in_effective_range_of_slot():
     schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_any_of.yaml")
