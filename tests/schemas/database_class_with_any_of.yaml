@@ -1,0 +1,28 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Food: { }
+  Fruit:
+    is_a: Food
+  Veggie:
+    is_a: Food
+  Carrot:
+    is_a: Veggie
+  Database:
+    slots:
+      - flexible_set
+      - rigid_set
+
+slots:
+  flexible_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Food
+  rigid_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Food
+    any_of:
+      - range: Fruit
+      - range: Carrot
