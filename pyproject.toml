@@ -40,6 +40,9 @@ pyinstrument = "^4.6.2"
 # Docs: https://docs.pytest.org/en/stable/contents.html
 pytest = "^8.2.2"
 pytest-cov = "^5.0.0"
+# We use `mongomock` to test MongoDB interaction without involving a real MongoDB instance.
+# Docs: https://github.com/mongomock/mongomock
+mongomock = "^4.3.0"
 
 [tool.poetry.scripts]
 # Reference: https://python-poetry.org/docs/pyproject#scripts
