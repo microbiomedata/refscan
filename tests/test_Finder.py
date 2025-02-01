@@ -3,15 +3,6 @@ import mongomock
 from refscan.lib.Finder import Finder
 
 
-def test_instantiation():
-    db = mongomock.MongoClient().db
-    finder = Finder(database=db)
-
-    assert isinstance(finder, Finder)
-    assert len(finder.names_of_collections_most_recently_found_in) == 0
-    assert len(finder.cached_id_presence_by_collection.keys()) == 0
-
-
 def test_finder_finds_documents():
     db = mongomock.MongoClient().db
     finder = Finder(database=db)
@@ -79,3 +70,45 @@ def test_finder_finds_documents():
         )
         is None
     )
+
+
+def test_finder_manages_queue_correctly():
+    r"""
+    Note: This test targets internal functionality of the class.
+    """
+    db = mongomock.MongoClient().db
+    finder = Finder(database=db)
+
+    assert finder.cache_size == 2
+
+    # Case: Inserting collection name into empty queue.
+    assert finder.cached_collection_names_where_recently_found == []
+    finder._set_name_of_collection_most_recently_found_in("a_set")
+    assert finder.cached_collection_names_where_recently_found == ["a_set"]
+
+    # Case: Inserting collection name into nonempty queue.
+    finder._set_name_of_collection_most_recently_found_in("b_set")
+    assert finder.cached_collection_names_where_recently_found == ["b_set", "a_set"]
+
+    # Case: Inserting collection name already at front of queue.
+    finder._set_name_of_collection_most_recently_found_in("b_set")
+    assert finder.cached_collection_names_where_recently_found == ["b_set", "a_set"]
+
+    # Case: Inserting collection name not at front of queue.
+    finder._set_name_of_collection_most_recently_found_in("a_set")
+    assert finder.cached_collection_names_where_recently_found == ["a_set", "b_set"]
+
+    # Case: Inserting excessive collection name.
+    finder._set_name_of_collection_most_recently_found_in("c_set")
+    assert finder.cached_collection_names_where_recently_found == ["c_set", "a_set"]
+
+
+def test_finder_optimizes_collection_search_order():
+    r"""
+    Note: This test targets internal functionality of the class.
+    """
+    db = mongomock.MongoClient().db
+    finder = Finder(database=db)
+
+    finder.cached_collection_names_where_recently_found = ["a_set", "b_set", "c_set"]
+    assert finder._optimize_collection_search_order(["c_set", "d_set", "a_set"]) == ["a_set", "c_set", "d_set"]

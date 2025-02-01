@@ -5,57 +5,105 @@ from pymongo.database import Database
 
 class Finder:
     r"""
-    A class that can be used to find a document in a MongoDB database,
-    in a way that uses past searches to try to speed up future searches.
+    A class that can be used to find a document in a MongoDB database, in a way that uses past searches to try to
+    speed up future searches.
     """
 
     def __init__(self, database: Database):
         self.db = database
 
-        # Initialize a variable we can use to keep track of the collections in which we most recently found targeted
-        # documents.
+        # Initialize our cache of names of collections we most recently found referenced document `id`s in.
         #
-        # Note: This will enable us to _start_ searching in these same collections next time.
+        # Note: This is a queue we will use to keep track of which collections we most recently found referenced
+        #       document `id`s in. This will enable us to _begin_ searching in those same collections for subsequent
+        #       searches. The idea that this will speed things up is based on the assumption that references emanating
+        #       from source documents that we process _temporally close_ to one another, likely point to target
+        #       documents residing _in the same collections_ as one another.
         #
-        self.names_of_collections_most_recently_found_in = []
+        self.cached_collection_names_where_recently_found = []
         self.cache_size = 2  # we'll cache up to 2 collection names
 
-        # Initialize a dictionary we can use to keep track of the referenced `id`s we have found in a given collection,
-        # and the referenced `id`s we have confirmed do _not_ exist in a given collection.
+        # Initialize our cache of document `id` presences/absences by collection.
         #
-        # The top-level items have keys that are collection names and values that are dictionaries. The latter
-        # dictionaries have keys that are `id` values and values that are boolean flags. The boolean flags indicate
-        # whether we have found a document having that `id` in that collection; where `True` means we have,
-        # and `False` means we search and _did not_ find such a document in that collection.
+        # Note: This is a dictionary we will use to keep track of the referenced `id`s we find in each collection,
+        #       and the referenced `id`s we fail to find (i.e. confirm do _not_ exist) in each collection. This will
+        #       enable us to avoid querying the database for the same information that we have previously obtained
+        #       by querying the database.
         #
-        # Example:
-        # ```
-        # {
-        #     "biosample_set": {"bsm-00-000001": True, "bsm-00-000002": False},
-        #     "study_set": {"sty-00-000001": True},
-        # }
-        # ```
+        # Note: The top-level items in the dictionary have keys that are collection names and values that are
+        #       dictionaries. Each of those dictionaries has keys that are document `id`s and values that are boolean
+        #       flags, which indicate whether we know that a document having that `id` exists in that collection
+        #       (`True`) or we know that a document having that `id` does _not_ exist in that collection (`False`).
+        #       Here's an example value of this attribute:
+        #       ```
+        #       {
+        #           "biosample_set": {"nmdc:bsm-00-000001": True, "nmdc:bsm-00-000002": False},
+        #           "study_set": {"nmdc:sty-00-000001": True},
+        #       }
+        #       ```
         #
-        # Note: This will enable us to _avoid_ searching for the same `id` values in the same collections in the future,
-        #       decreasing execution time (in exchange for memory consumption).
-        #
-        # TODO: Measure memory usage when scanning the NMDC database, reverting this perf. optimization if necessary.
+        # Note: If this program ever leads to memory consumption (RAM usage) issues in practice, consider
+        #       redesigning this cache and/or allowing the user to disable its use.
         #
         self.cached_id_presence_by_collection: Dict[str, Dict[str, bool]] = {}
 
+    def _set_name_of_collection_most_recently_found_in(self, collection_name: str):
+        r"""
+        Helper function that updates our cache of collection names in which target documents were most recently found,
+        so that the specified collection is at the front/start of the list. That will make it so it gets searched first
+        next time.
+        """
+        # Make a concise alias for the instance attribute (both will refer to the same data structure).
+        queue = self.cached_collection_names_where_recently_found
+
+        # Check whether either (a) the queue is empty or (b) this collection name is not at the front of the queue.
+        # Example: [] is empty, or "b_set" is not the first item in ["a_set", "b_set", "c_set"]
+        if len(queue) == 0 or queue[0] != collection_name:
+
+            # If this collection name is already (elsewhere) in the queue, remove it from that position, automatically
+            # updating the list indexes of subsequent list items (so there is no "gap" in the list).
+            # Example: Removing "b_set" from ["a_set", "b_set", "c_set"] → ["a_set", "c_set"]
+            if collection_name in queue:
+                queue.remove(collection_name)
+
+            # Prepend this collection name to the beginning of the queue, dropping any excess collection names.
+            # Example: Prepending ["b_set"] to ["a_set", "c_set"] → ["b_set", "a_set", "c_set"]
+            queue = [collection_name] + queue[0 : self.cache_size - 1]
+
+            # Note: This unnecessary assignment is here only to tell my IDE that `queue` isn't an unused variable.
+            self.cached_collection_names_where_recently_found = queue
+
+    def _optimize_collection_search_order(self, names_of_eligible_collections: List[str]) -> List[str]:
+        r"""
+        Helper function that returns an optimized order in which the specified collections could be searched, in order
+        to take advantage of things the instance "remembers" from recent searches.
+        """
+        ordered_collection_names = names_of_eligible_collections.copy()
+
+        # Iterate over the collection names in the queue, from back (oldest) to front (newest).
+        for cached_collection_name in reversed(self.cached_collection_names_where_recently_found):
+
+            # If this cached collection name is among the eligible ones, move it to the front of the list.
+            # Example: Since "b_set" is in ["a_set", "b_set", "c_set"] → ["b_set, "a_set", "c_set"]
+            if cached_collection_name in names_of_eligible_collections:
+                ordered_collection_names.remove(cached_collection_name)
+                ordered_collection_names.insert(0, cached_collection_name)
+
+        return ordered_collection_names
+
     def _set_cached_id_presence_in_collection(self, collection_name: str, document_id: str, is_present: bool) -> None:
         r"""
-        Helper function that updates our cache of `id` presences/absences, setting the presence flag for the specified
-        document `id` in the specified collection.
+        Helper function that updates our cache of document `id` presences/absences, setting the presence flag for the
+        specified document `id` in the specified collection.
         """
         if collection_name not in self.cached_id_presence_by_collection:
-            self.cached_id_presence_by_collection[collection_name] = {}
+            self.cached_id_presence_by_collection[collection_name] = {}  # creates key if it does not exist
         self.cached_id_presence_by_collection[collection_name][document_id] = is_present
 
     def _get_cached_id_presence_in_collection(self, collection_name: str, document_id: str) -> Optional[bool]:
         r"""
-        Helper function that checks our cache of `id` presences/absences, getting the presence/absence flag, if any,
-        for the specified document `id` in the specified collection.
+        Helper function that checks our cache of document `id` presences/absences, returning the presence/absence flag,
+        if any, for the specified document `id` in the specified collection.
         """
         if (
             collection_name not in self.cached_id_presence_by_collection
@@ -73,30 +121,21 @@ class Finder:
         Returns the name of the first collection, if any, containing such a document. If none of the collections
         contain such a document, the function returns `None`.
 
-        TODO: This function refers to "cache" as though we are only dealing with one—but we are now dealing with two
-              (see the two instance attributes of this class). The outstanding task here is to update the comments
-              in this function to be more specific about which cache is being referenced in a given statement.
-
         References:
         - https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection.find_one
         """
-        names_of_collections_to_search = collection_names.copy()
 
-        # Make a concise alias.
-        cache = self.names_of_collections_most_recently_found_in
-
-        # If any cached collection name is among the ones eligible to search, move it to the front of list.
-        for cached_collection_name in reversed(cache):  # goes in reverse, so latest addition ends up in front
-            if cached_collection_name in collection_names:
-                names_of_collections_to_search.remove(cached_collection_name)
-                names_of_collections_to_search.insert(0, cached_collection_name)  # makes it the first item
-
-        # Search the collections in their current order.
+        # Initialize the name of the containing collection to `None`.
         name_of_collection_containing_target_document = None
-        query_filter = dict(id=document_id)
-        for collection_name in names_of_collections_to_search:
 
-            # Before querying the database, check our in-memory record of `id` presences in this collection.
+        # Optimize the search order of the collections, based upon the outcomes of recent searches.
+        ordered_collection_names = self._optimize_collection_search_order(collection_names)
+
+        # Search the collections.
+        query_filter = dict(id=document_id)
+        for collection_name in ordered_collection_names:
+
+            # Before querying the database, check our cache of document `id` presences/absences per collection.
             is_id_present: Optional[bool] = self._get_cached_id_presence_in_collection(
                 collection_name=collection_name, document_id=document_id
             )
@@ -106,32 +145,28 @@ class Finder:
             if is_id_present is False:
                 continue  # stop evaluating this collection
 
-            # If we _don't know_ whether it is in the collection or not, we can't take any shortcuts. Aw, shucks.
-            if is_id_present is None:
-                pass
+            # If we already know it _is_ in this collection, record the collection name, update the cache of names
+            # of collections where a referenced document was recently found, and skip searching additional collections.
+            if is_id_present is True:
+                name_of_collection_containing_target_document = collection_name
+                self._set_name_of_collection_most_recently_found_in(collection_name=collection_name)
+                break
 
-            # If it _is_ in this collection—based on either what we already know, or what we find now—cache
-            # the collection name and skip searching additional collections for documents having this `id`.
-            collection = self.db.get_collection(collection_name)
-            if is_id_present or collection.find_one(query_filter, projection=["_id"]) is not None:
+            # If we find it in the collection in the database, record the collection name, update both (a) the cache
+            # of which documents we have found in which collections, and (b) the cache of names of collections where
+            # a referenced document was recently found, and skip searching additional collections.
+            if self.db.get_collection(collection_name).find_one(query_filter, projection=["_id"]) is not None:
                 name_of_collection_containing_target_document = collection_name
 
-                # Put this collection name at the front/start of the cache.
-                if len(cache) == 0 or cache[0] != collection_name:
-                    if collection_name in cache:  # if it's elsewhere in the cache, remove it from the cache
-                        cache.remove(collection_name)
-                    cache = [collection_name] + cache[0 : self.cache_size - 1]  # prepends item, dropping any excess
-                    self.names_of_collections_most_recently_found_in = cache  # persists it to the instance attribute
-
-                # Record that a document having this `id` _exists_ in this collection.
-                # Note: This assignment will be redundant if we got here due to `is_id_present` being `True`.
+                # Record that a document having this `id` is _present_ in this collection.
                 self._set_cached_id_presence_in_collection(
                     collection_name=collection_name, document_id=document_id, is_present=True
                 )
 
+                self._set_name_of_collection_most_recently_found_in(collection_name=collection_name)
                 break
 
-            # Record that a document having this `id` does _not_ exist in this collection.
+            # If we made it this far, record that a document having this `id` does _not_ exist in this collection.
             self._set_cached_id_presence_in_collection(
                 collection_name=collection_name, document_id=document_id, is_present=False
             )
