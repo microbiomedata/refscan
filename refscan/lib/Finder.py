@@ -25,27 +25,58 @@ class Finder:
 
         # Initialize our cache of document `id` presences/absences by collection.
         #
-        # Note: This is a dictionary we will use to keep track of the referenced `id`s we find in each collection,
-        #       and the referenced `id`s we fail to find (i.e. confirm do _not_ exist) in each collection. This will
-        #       enable us to avoid querying the database for the same information that we have previously obtained
-        #       by querying the database.
+        # Note: This is a dictionary we will use to keep track of the referenced `id`s we search for, and whether
+        #       we search-and-find it in a given collection or we search-and-fail to find it in a given collection.
+        #       This will enable us to avoid querying the database for the same information that we have previously
+        #       obtained by querying the database.
         #
-        # Note: The top-level items in the dictionary have keys that are collection names and values that are
-        #       dictionaries. Each of those dictionaries has keys that are document `id`s and values that are boolean
-        #       flags, which indicate whether we know that a document having that `id` exists in that collection
+        # Note: The top-level items in the dictionary have keys that are `id` values and values that are dictionaries.
+        #       Each of those dictionaries has keys that are integer aliases of collection names, and values that are
+        #       boolean flags, which indicate whether we know that a document having that `id` exists in that collection
         #       (`True`) or we know that a document having that `id` does _not_ exist in that collection (`False`).
-        #       Here's an example value of this attribute:
+        #
+        #       Here's an example value of this instance attribute:
         #       ```
         #       {
-        #           "biosample_set": {"nmdc:bsm-00-000001": True, "nmdc:bsm-00-000002": False},
-        #           "study_set": {"nmdc:sty-00-000001": True},
+        #           "nmdc:bsm-00-000001": { 0: True, 1: False },
+        #           "nmdc:sty-00-000001": { 1: True },
         #       }
         #       ```
         #
         # Note: If this program ever leads to memory consumption (RAM usage) issues in practice, consider
         #       redesigning this cache and/or allowing the user to disable its use.
         #
-        self.cached_id_presence_by_collection: Dict[str, Dict[str, bool]] = {}
+        self.cached_collection_presence_by_id: Dict[str, Dict[int, bool]] = {}
+        #
+        # Define a dictionary we can use to map integers to collection names.
+        #
+        # Note: This will allow us to represent collection names without using so much memory.
+        #       Here's an example value of this instance attribute:
+        #       ```
+        #       {
+        #           0: "biosample_set",
+        #           1: "study_set",
+        #       }
+        #       ```
+        #
+        self.collection_name_aliases: Dict[int, str] = {}
+
+    def _get_or_make_collection_name_alias(self, collection_name: str) -> int:
+        r"""
+        Helper function that retrieves the integer alias for the specified collection name, defining and recording
+        an alias for the collection name if no such alias already exists.
+        """
+
+        # If the collection name is not in the lookup table, add it and return its newly-defined integer alias.
+        if collection_name not in self.collection_name_aliases.values():
+            next_available_integer = len(self.collection_name_aliases.keys())
+            self.collection_name_aliases[next_available_integer] = collection_name
+            return next_available_integer
+
+        # Otherwise, return its integer alias.
+        for alias, name in self.collection_name_aliases.items():
+            if name == collection_name:
+                return alias
 
     def _set_name_of_collection_most_recently_found_in(self, collection_name: str):
         r"""
@@ -96,22 +127,23 @@ class Finder:
         Helper function that updates our cache of document `id` presences/absences, setting the presence flag for the
         specified document `id` in the specified collection.
         """
-        if collection_name not in self.cached_id_presence_by_collection:
-            self.cached_id_presence_by_collection[collection_name] = {}  # creates key if it does not exist
-        self.cached_id_presence_by_collection[collection_name][document_id] = is_present
+        if document_id not in self.cached_collection_presence_by_id:
+            self.cached_collection_presence_by_id[document_id] = {}  # creates key if it does not exist
+        collection_name_alias = self._get_or_make_collection_name_alias(collection_name)
+        self.cached_collection_presence_by_id[document_id][collection_name_alias] = is_present
 
     def _get_cached_id_presence_in_collection(self, collection_name: str, document_id: str) -> Optional[bool]:
         r"""
         Helper function that checks our cache of document `id` presences/absences, returning the presence/absence flag,
         if any, for the specified document `id` in the specified collection.
         """
-        if (
-            collection_name not in self.cached_id_presence_by_collection
-            or document_id not in self.cached_id_presence_by_collection[collection_name]
-        ):
+
+        if document_id not in self.cached_collection_presence_by_id:
             return None
-        else:
-            return self.cached_id_presence_by_collection[collection_name][document_id]
+
+        collection_name_alias = self._get_or_make_collection_name_alias(collection_name)
+        if collection_name_alias in self.cached_collection_presence_by_id[document_id]:
+            return self.cached_collection_presence_by_id[document_id][collection_name_alias]
 
     def check_whether_document_having_id_exists_among_collections(
         self, document_id: str, collection_names: List[str]
