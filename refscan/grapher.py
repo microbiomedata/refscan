@@ -48,6 +48,18 @@ def encode_json_value_as_base64_str(json_value: Union[dict, list]) -> str:
     return encoded_bytes_as_string
 
 
+def is_class_abstract(class_name: str, schema_view: linkml_runtime.SchemaView) -> bool:
+    r"""
+    Returns whether the specified schema class is abstract.
+
+    Note: The `abstract` property can contain `True`, `False`, or `None`.
+
+    Reference: https://linkml.io/linkml/schemas/inheritance.html#abstract-classes-and-slots
+    """
+
+    return schema_view.get_class(class_name).abstract is True
+
+
 def graph(
     schema_view: linkml_runtime.SchemaView,
     subject: Subject,
@@ -106,12 +118,17 @@ def graph(
         source_name = r.source_collection_name if subject == Subject.collection else r.source_class_name
         target_name = r.target_collection_name if subject == Subject.collection else r.target_class_name
 
+        # If the subject of the graph is "class", determine whether the source class is abstract. Same for the target class.
+        # Note: This will allow us to display abstract classes differently from concrete classes in the diagram.
+        is_source_abstract = is_class_abstract(source_name, schema_view) if subject == Subject.class_ else None
+        is_target_abstract = is_class_abstract(target_name, schema_view) if subject == Subject.class_ else None
+
         # Append a node for the source subject if we haven't already done so. Same for the target subject.
         node_ids = [n["data"]["id"] for n in nodes]
         if source_name not in node_ids:
-            nodes.append(dict(data=dict(id=source_name)))
+            nodes.append(dict(data=dict(id=source_name, is_abstract=is_source_abstract)))
         if target_name not in node_ids:
-            nodes.append(dict(data=dict(id=target_name)))
+            nodes.append(dict(data=dict(id=target_name, is_abstract=is_target_abstract)))
 
         # Append an edge for this source subject-to-target subject relationship if we haven't already done so.
         edge_id = f"{source_name}__to__{target_name}"
@@ -147,6 +164,8 @@ def graph(
         dict(
             app_version=get_package_metadata("Version"),
             schema_version=schema_view.schema.version,
+            subject_singular="class" if subject == Subject.class_ else "collection",
+            subject_plural="classes" if subject == Subject.class_ else "collections",
         )
     )
     html_result = html_template.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)

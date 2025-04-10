@@ -1,0 +1,13 @@
+# Reference: https://linkml.io/linkml/schemas/inheritance.html#abstract-classes-and-slots
+id: my-schema
+name: MySchema
+
+classes:
+  NamedThing:
+    abstract: true  # key is present, value is `true`
+  Car:
+    abstract: false  # key is present, value is `false`
+    is_a: NamedThing
+  Boat:
+    # key is absent
+    is_a: NamedThing
