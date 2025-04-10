@@ -164,6 +164,8 @@ def graph(
         dict(
             app_version=get_package_metadata("Version"),
             schema_version=schema_view.schema.version,
+            subject_singular="class" if subject == Subject.class_ else "collection",
+            subject_plural="classes" if subject == Subject.class_ else "collections",
         )
     )
     html_result = html_template.replace("{{ graph_data_json_base64 }}", graph_data_json_base64_str)
