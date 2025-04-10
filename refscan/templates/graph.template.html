@@ -19,6 +19,15 @@
             list-style-type: none;
             margin: 0;
         }
+        .text-button {
+            color: inherit;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            margin: 0;
+            padding: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -229,40 +238,59 @@
                 .removeClass("inFocus");
         });
 
-        // Get a collection of all nodes that represent abstract things.
-        // Note: For conciseness, we refer to them as "abstract nodes" here.
-        // Reference: https://js.cytoscape.org/#eles.filter
-        const abstractNodes = cy.filter(function(el, idx, allEls) {
-            return el.isNode() && el.data("is_abstract");
-        });
-
-        // If there are any abstract nodes, give them (and the edges connected to them)
-        // a specific "stylesheet" class and set up their visibility toggler.
-        if (abstractNodes.length > 0) {
-            abstractNodes.addClass("isAbstract");
-            abstractNodes.connectedEdges().addClass("isAbstract");
-            
-            // Set up a checkbox that can be used to show/hide the abstract nodes.
-            // Note: When a node gets hidden, its connected edges are automatically hidden also.
-            let removedNodes = cy.collection(); // initially empty
-            const labelEl = document.createElement("label");
-            labelEl.appendChild(document.createTextNode(`Show abstract ${subjectPlural}`));
-            const inputEl = document.createElement("input");
-            inputEl.type = "checkbox";
-            inputEl.checked = true;
-            inputEl.addEventListener("change", () => {
-                if (inputEl.checked) {
-                    // Add them back into the graph.
-                    removedNodes.restore();
-                    removedNodes = cy.collection();
-                } else {
-                    // Remove them from the graph, but save them in memory.
-                    removedNodes = cy.remove(abstractNodes);
-                }
+        /**
+         * Sets up a text button that can be used to toggle the visibility of
+         * nodes that represent abstract things.
+         */
+        function setupAbstractNodeVisibilityToggler() {
+            // Get a collection of all nodes that represent abstract things.
+            // Note: For conciseness, we refer to them as "abstract nodes" here.
+            // Reference: https://js.cytoscape.org/#eles.filter
+            const abstractNodes = cy.filter(function(el, idx, allEls) {
+                return el.isNode() && el.data("is_abstract");
             });
-            labelEl.appendChild(inputEl);
-            metadataContainerEl.appendChild(labelEl);
+
+            // If there are any abstract nodes, give them (and the edges connected to them)
+            // a specific "stylesheet" class and set up their visibility toggler.
+            if (abstractNodes.length > 0) {
+                abstractNodes.addClass("isAbstract");
+                abstractNodes.connectedEdges().addClass("isAbstract");
+                
+                // Set up a clickable element that can be used to show/hide the abstract nodes.
+                // Note: When a node gets hidden, its connected edges will be automatically hidden also.
+                const strings = {
+                    prefix: `Abstract ${subjectPlural} are `,
+                    visible: "visible",
+                    hidden: "hidden",
+                };
+                let removedNodes = cy.collection(); // initially empty
+                const prefixEl = document.createElement("span");
+                prefixEl.textContent =strings.prefix;
+                const togglerEl = document.createElement("button");
+                togglerEl.classList.add("text-button");
+                togglerEl.title = "Toggle visibility";
+                const togglerTextEl = document.createElement("span");
+                togglerTextEl.textContent = strings.visible;
+                togglerEl.appendChild(togglerTextEl);
+                togglerEl.addEventListener("click", () => {
+                    if (removedNodes.length > 0) {
+                        // Add them back into the graph.
+                        removedNodes.restore();
+                        removedNodes = cy.collection();
+                        togglerTextEl.textContent = strings.visible;
+                    } else {
+                        // Remove them from the graph, but save them in memory.
+                        removedNodes = cy.remove(abstractNodes);
+                        togglerTextEl.textContent = strings.hidden;
+                    }
+                });
+                metadataContainerEl.appendChild(prefixEl);
+                metadataContainerEl.appendChild(togglerEl);
+            }
         }
+
+        // Set up the abstract node visibility toggler.
+        setupAbstractNodeVisibilityToggler();
     })();
 </script>
 </body>
