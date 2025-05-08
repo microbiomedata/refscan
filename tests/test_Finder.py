@@ -1,4 +1,5 @@
 import mongomock
+import pytest
 
 from refscan.lib.Finder import Finder
 
@@ -69,6 +70,17 @@ def test_finder_finds_documents():
             collection_names=["foo_set", "bar_set"],
         )
         is None
+    )
+
+
+@pytest.mark.xfail(raises=NotImplementedError)
+def test_finder_finds_documents_within_session():
+    r"""
+    TODO: Consider introducing a real MongoDB server into the test suite, and then
+          implementing a test demonstrating the use of a MongoDB session.
+    """
+    raise NotImplementedError(
+        "The test suite uses mongomock instead of a real MongoDB server, and mongomock does not support sessions."
     )
 
 
