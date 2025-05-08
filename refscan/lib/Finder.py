@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict
 
 from pymongo.database import Database
+from pymongo.client_session import ClientSession
 
 
 class Finder:
@@ -10,6 +11,9 @@ class Finder:
     """
 
     def __init__(self, database: Database):
+        r"""
+        Initializes an instance of the `Finder` class. The instance is bound to the specified MongoDB database.
+        """
         self.db = database
 
         # Initialize our cache of names of collections we most recently found referenced document `id`s in.
@@ -114,15 +118,20 @@ class Finder:
             return self.cached_id_presence_by_collection[collection_name][document_id]
 
     def check_whether_document_having_id_exists_among_collections(
-        self, document_id: str, collection_names: List[str]
+        self, document_id: str, collection_names: List[str], client_session: ClientSession = None
     ) -> Optional[str]:
         r"""
         Checks whether any document in any of the specified collections has the specified value in its `id` field.
         Returns the name of the first collection, if any, containing such a document. If none of the collections
         contain such a document, the function returns `None`.
 
+        If a `pymongo.client_session.ClientSession` is specified, this function will access the database within
+        the context of that session. If a transaction is pending on that session, this feature can be used
+        to check whether the specified document _would_ exist if that transaction were to be committed.
+
         References:
         - https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection.find_one
+        - https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html#transactions
         """
 
         # Initialize the name of the containing collection to `None`.
@@ -155,7 +164,8 @@ class Finder:
             # If we find it in the collection in the database, record the collection name, update both (a) the cache
             # of which documents we have found in which collections, and (b) the cache of names of collections where
             # a referenced document was recently found, and skip searching additional collections.
-            if self.db.get_collection(collection_name).find_one(query_filter, projection=["_id"]) is not None:
+            collection = self.db.get_collection(collection_name)
+            if collection.find_one(query_filter, projection=["_id"], session=client_session) is not None:
                 name_of_collection_containing_target_document = collection_name
 
                 # Record that a document having this `id` is _present_ in this collection.
