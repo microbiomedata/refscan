@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict
 
 from pymongo.database import Database
+from pymongo.client_session import ClientSession
 from rich.console import Console
 from linkml_runtime import SchemaView
 
@@ -24,6 +25,7 @@ def scan_outgoing_references(
     finder: Finder,
     collection_names: List[str],
     source_collection_name: str,
+    client_session: ClientSession = None,
     user_wants_to_locate_misplaced_documents: bool = False,
 ) -> ViolationList:
     r"""
@@ -40,6 +42,10 @@ def scan_outgoing_references(
                                                      all the legal collections
     :param source_collection_name: Name of collection in which source document resides (this is included in the
                                    violation report in an attempt to facilitate investigation of violations)
+    :param client_session: A `pymongo.client_session.ClientSession` instance that, if specified, will be used when
+                           searching for referenced documents. If a transaction happens to be pending on that session,
+                           the scan will effectively happen on the database as it _would_ exist if that transaction
+                           were to be committed.
     :param collection_names: List of collection names that are described by the schema
     """
 
@@ -77,7 +83,7 @@ def scan_outgoing_references(
             for target_id in target_ids:
                 name_of_collection_containing_target_document = (
                     finder.check_whether_document_having_id_exists_among_collections(
-                        collection_names=target_collection_names, document_id=target_id
+                        collection_names=target_collection_names, document_id=target_id, client_session=client_session
                     )
                 )
                 if name_of_collection_containing_target_document is None:
@@ -88,7 +94,9 @@ def scan_outgoing_references(
                         names_of_ineligible_collections = list(set(collection_names) - set(target_collection_names))
                         name_of_collection_containing_target_document = (
                             finder.check_whether_document_having_id_exists_among_collections(
-                                collection_names=names_of_ineligible_collections, document_id=target_id
+                                collection_names=names_of_ineligible_collections,
+                                document_id=target_id,
+                                client_session=client_session,
                             )
                         )
 
