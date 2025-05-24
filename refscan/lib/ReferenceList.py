@@ -121,6 +121,21 @@ class ReferenceList(UserList):
 
         return reference_field_names_by_source_class_name
 
+    def get_by_target_class_name(self, target_class_name: str) -> "ReferenceList":
+        r"""
+        Returns a new `ReferenceList` that contains only the references whose target class
+        has the specified name.
+
+        Maintainer note: The return type is written as a string to avoid the error:
+                         > NameError: name 'ReferenceList' is not defined
+        """
+
+        filtered_references = ReferenceList()
+        for reference in self.data:
+            if reference.target_class_name == target_class_name:
+                filtered_references.append(reference)
+        return filtered_references
+
     def as_table(self) -> Table:
         r"""
         Returns the references as a `rich.Table` instance.

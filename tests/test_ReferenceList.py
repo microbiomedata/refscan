@@ -16,6 +16,15 @@ def reference_list():
     references = ReferenceList()
     references.append(
         Reference(
+            source_collection_name="companies",
+            source_class_name="Company",
+            source_field_name="parent",
+            target_collection_name="companies",
+            target_class_name="Company",
+        )
+    )    
+    references.append(
+        Reference(
             source_collection_name="employees",
             source_class_name="Employee",
             source_field_name="employer",
@@ -49,8 +58,9 @@ def test_get_source_field_names_of_source_collection(reference_list):
     assert "employer" in field_names
 
     field_names = reference_list.get_source_field_names_of_source_collection("companies")
-    assert len(field_names) == 1
+    assert len(field_names) == 2
     assert "owner" in field_names
+    assert "parent" in field_names
 
     field_names = reference_list.get_source_field_names_of_source_collection("persons")
     assert len(field_names) == 0
@@ -70,8 +80,25 @@ def test_get_reference_field_names_by_source_class_name(reference_list):
     assert len(field_names_by_class_name.keys()) == 2
     assert "Employee" in field_names_by_class_name
     assert "Company" in field_names_by_class_name
-    assert field_names_by_class_name["Employee"] == ["employer"]
-    assert field_names_by_class_name["Company"] == ["owner"]
+    assert len(field_names_by_class_name["Employee"]) == 1
+    assert "employer" in field_names_by_class_name["Employee"]
+    assert len(field_names_by_class_name["Company"]) == 2
+    assert "owner" in field_names_by_class_name["Company"]
+    assert "parent" in field_names_by_class_name["Company"]
+
+
+def test_get_by_target_class_name(reference_list):
+    filtered_references = reference_list.get_by_target_class_name("Company")
+    assert len(filtered_references) == 2
+    assert filtered_references[0].target_class_name == "Company"
+    assert filtered_references[1].target_class_name == "Company"
+
+    filtered_references = reference_list.get_by_target_class_name("Person")
+    assert len(filtered_references) == 1
+    assert filtered_references[0].target_class_name == "Person"
+
+    filtered_references = reference_list.get_by_target_class_name("NonExistentClass")
+    assert len(filtered_references) == 0
 
 
 def test_as_table(reference_list):
