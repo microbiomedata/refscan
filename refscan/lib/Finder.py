@@ -118,7 +118,7 @@ class Finder:
             return self.cached_id_presence_by_collection[collection_name][document_id]
 
     def check_whether_document_having_id_exists_among_collections(
-        self, document_id: str, collection_names: List[str], client_session: ClientSession = None
+        self, document_id: str, collection_names: List[str], client_session: Optional[ClientSession] = None
     ) -> Optional[str]:
         r"""
         Checks whether any document in any of the specified collections has the specified value in its `id` field.

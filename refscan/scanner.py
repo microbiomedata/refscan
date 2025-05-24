@@ -25,7 +25,7 @@ def scan_outgoing_references(
     finder: Finder,
     collection_names: List[str],
     source_collection_name: str,
-    client_session: ClientSession = None,
+    client_session: Optional[ClientSession] = None,
     user_wants_to_locate_misplaced_documents: bool = False,
 ) -> ViolationList:
     r"""
