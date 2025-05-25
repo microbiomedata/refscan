@@ -8,6 +8,8 @@ from refscan.lib.helpers import (
     get_collection_names_from_schema,
     get_names_of_classes_eligible_for_collection,
     get_names_of_classes_in_effective_range_of_slot,
+    translate_class_uri_into_schema_class_name,
+    translate_schema_class_name_into_class_uri,
     identify_references,
 )
 
@@ -134,3 +136,39 @@ def test_identify_references():
     ]
     for expected_reference in expected_references:
         assert expected_reference in actual_references
+
+
+def test_translate_class_uri_into_schema_class_name():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    assert translate_class_uri_into_schema_class_name(
+        schema_view=schema_view,
+        class_uri="refscan:Car",
+    ) == "Car"
+    assert translate_class_uri_into_schema_class_name(
+        schema_view=schema_view,
+        class_uri="refscan:Boat",
+    ) == "Boat"
+    assert translate_class_uri_into_schema_class_name(
+        schema_view=schema_view,
+        class_uri="refscan:NonExistentClassUri",
+    ) is None
+
+
+def test_translate_schema_class_name_into_class_uri():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    assert translate_schema_class_name_into_class_uri(
+        schema_view=schema_view,
+        schema_class_name="Car",
+    ) == "refscan:Car"
+    assert translate_schema_class_name_into_class_uri(
+        schema_view=schema_view,
+        schema_class_name="Boat",
+    ) == "refscan:Boat"
+    assert translate_schema_class_name_into_class_uri(
+        schema_view=schema_view,
+        schema_class_name="NonExistentSchemaClassName",
+    ) is None

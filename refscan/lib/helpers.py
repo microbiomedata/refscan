@@ -85,6 +85,22 @@ def translate_class_uri_into_schema_class_name(schema_view: SchemaView, class_ur
     return schema_class_name
 
 
+@cache  # memoizes the decorated function
+def translate_schema_class_name_into_class_uri(schema_view: SchemaView, schema_class_name: str) -> Optional[str]:
+    r"""
+    Returns the `class_uri` of the schema class having the specified name.
+
+    Example: "Biosample" (a schema class name) -> "nmdc:Biosample" (a `class_uri` value)
+    """
+    class_uri = None
+    all_class_definitions_in_schema = schema_view.all_classes()
+    for class_name, class_definition in all_class_definitions_in_schema.items():
+        if class_name == schema_class_name:
+            class_uri = class_definition.class_uri
+            break
+    return class_uri
+
+
 def derive_schema_class_name_from_document(schema_view: SchemaView, document: dict) -> Optional[str]:
     r"""
     Returns the name of the schema class, if any, of which the specified document claims to represent an instance.
