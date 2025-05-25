@@ -1,0 +1,8 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Car:
+    class_uri: refscan:Car
+  Boat:
+    class_uri: refscan:Boat
