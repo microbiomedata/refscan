@@ -53,9 +53,7 @@ def identify_referring_documents(
     document_id = document["id"]
     document_class_name = derive_schema_class_name_from_document(schema_view, document)
     if document_class_name is None:
-        raise ValueError(
-            f"Failed to identify schema class of document ({document_id=}, {document_object_id=})"
-        )
+        raise ValueError(f"Failed to identify schema class of document ({document_id=}, {document_object_id=})")
 
     # Identify potential references to the specified document, then
     # group them by their source collection names.
@@ -71,11 +69,11 @@ def identify_referring_documents(
         #
         class_uri_and_field_name_tuples: Set[Tuple[str, str]] = set()
         for p_ref in potential_references_in_collection:
-            class_uri = translate_schema_class_name_into_class_uri(schema_view=schema_view, schema_class_name=p_ref.source_class_name)
+            class_uri = translate_schema_class_name_into_class_uri(
+                schema_view=schema_view, schema_class_name=p_ref.source_class_name
+            )
             if class_uri is None:
-                raise ValueError(
-                    f"Failed to translate schema class name '{p_ref.source_class_name}' into class_uri."
-                )
+                raise ValueError(f"Failed to translate schema class name '{p_ref.source_class_name}' into class_uri.")
             class_uri_and_field_name_tuple = (class_uri, p_ref.source_field_name)
             class_uri_and_field_name_tuples.add(class_uri_and_field_name_tuple)
 

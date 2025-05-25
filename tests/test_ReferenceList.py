@@ -22,7 +22,7 @@ def reference_list():
             target_collection_name="companies",
             target_class_name="Company",
         )
-    )    
+    )
     references.append(
         Reference(
             source_collection_name="employees",

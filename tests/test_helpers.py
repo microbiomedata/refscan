@@ -142,33 +142,51 @@ def test_translate_class_uri_into_schema_class_name():
     schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
     assert isinstance(schema_view, linkml_runtime.SchemaView)
 
-    assert translate_class_uri_into_schema_class_name(
-        schema_view=schema_view,
-        class_uri="refscan:Car",
-    ) == "Car"
-    assert translate_class_uri_into_schema_class_name(
-        schema_view=schema_view,
-        class_uri="refscan:Boat",
-    ) == "Boat"
-    assert translate_class_uri_into_schema_class_name(
-        schema_view=schema_view,
-        class_uri="refscan:NonExistentClassUri",
-    ) is None
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:Car",
+        )
+        == "Car"
+    )
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:Boat",
+        )
+        == "Boat"
+    )
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:NonExistentClassUri",
+        )
+        is None
+    )
 
 
 def test_translate_schema_class_name_into_class_uri():
     schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
     assert isinstance(schema_view, linkml_runtime.SchemaView)
 
-    assert translate_schema_class_name_into_class_uri(
-        schema_view=schema_view,
-        schema_class_name="Car",
-    ) == "refscan:Car"
-    assert translate_schema_class_name_into_class_uri(
-        schema_view=schema_view,
-        schema_class_name="Boat",
-    ) == "refscan:Boat"
-    assert translate_schema_class_name_into_class_uri(
-        schema_view=schema_view,
-        schema_class_name="NonExistentSchemaClassName",
-    ) is None
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="Car",
+        )
+        == "refscan:Car"
+    )
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="Boat",
+        )
+        == "refscan:Boat"
+    )
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="NonExistentSchemaClassName",
+        )
+        is None
+    )
