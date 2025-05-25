@@ -71,7 +71,7 @@ def identify_referring_documents(
         #
         class_uri_and_field_name_tuples: Set[Tuple[str, str]] = set()
         for p_ref in potential_references_in_collection:
-            class_uri = translate_schema_class_name_into_class_uri(schema_view=schema_view, source_class_name=p_ref.source_class_name)
+            class_uri = translate_schema_class_name_into_class_uri(schema_view=schema_view, schema_class_name=p_ref.source_class_name)
             if class_uri is None:
                 raise ValueError(
                     f"Failed to translate schema class name '{p_ref.source_class_name}' into class_uri."
