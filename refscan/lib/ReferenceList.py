@@ -136,6 +136,20 @@ class ReferenceList(UserList):
                 filtered_references.append(reference)
         return filtered_references
 
+    def group_by_source_collection_name(self) -> Dict[str, "ReferenceList"]:
+        r"""
+        Returns a dictionary that maps source collection names to `ReferenceList` instances
+        containing the references that have that source collection name.
+        """
+
+        grouped_references: Dict[str, ReferenceList] = {}
+        for reference in self.data:
+            if reference.source_collection_name not in grouped_references:
+                grouped_references[reference.source_collection_name] = ReferenceList()
+            grouped_references[reference.source_collection_name].append(reference)
+
+        return grouped_references
+
     def as_table(self) -> Table:
         r"""
         Returns the references as a `rich.Table` instance.

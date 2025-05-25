@@ -101,5 +101,14 @@ def test_get_by_target_class_name(reference_list):
     assert len(filtered_references) == 0
 
 
+def test_group_by_source_collection_name(reference_list):
+    grouped_references = reference_list.group_by_source_collection_name()
+    assert len(grouped_references) == 2
+    assert "companies" in grouped_references
+    assert "employees" in grouped_references
+    assert len(grouped_references["companies"]) == 2
+    assert len(grouped_references["employees"]) == 1
+
+
 def test_as_table(reference_list):
     assert isinstance(reference_list.as_table(), Table)
