@@ -48,12 +48,11 @@ def identify_referring_documents(
     # Initialize a list of descriptors of documents that reference the specified document.
     referring_document_descriptors = []
 
-    # Get the specified document's identifiers and schema class name.
-    document_object_id = document["_id"]
+    # Get the specified document's `id` and derive its schema class name.
     document_id = document["id"]
     document_class_name = derive_schema_class_name_from_document(schema_view, document)
     if document_class_name is None:
-        raise ValueError(f"Failed to identify schema class of document ({document_id=}, {document_object_id=})")
+        raise ValueError(f"Failed to identify schema class of document having `id`: {document_id}")
 
     # Identify potential references to the specified document, then
     # group them by their source collection names.
