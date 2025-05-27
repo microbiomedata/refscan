@@ -57,26 +57,27 @@ def identify_referring_documents(
     if document_class_name is None:
         raise ValueError(f"Failed to identify schema class of document having `id`: {document_id}")
 
-    # Identify potential references to the specified document, then
-    # group them by their source collection names.
-    potential_references = references.get_by_target_class_name(document_class_name)
-    potential_references_by_source_collection = potential_references.group_by_source_collection_name()
+    # Identify potential references to the specified document, then group them by their source collection names.
+    potential_references_to_document = references.get_by_target_class_name(document_class_name)
+    potential_references_by_source_collection = potential_references_to_document.group_by_source_collection_name()
 
     # For each source collection name, check each of its potential references.
     for collection_name, potential_references_in_collection in potential_references_by_source_collection.items():
         # Make a list of all the distinct `class_uri`-and-`field_name` tuples.
         #
-        # Note: Since a `Reference` does not have a `source_class_uri` attribute, but it does have a
-        #       `source_class_name` attribute, we will derive its `class_uri` from that `source_class_name` attribute.
+        # Note: Since a `Reference` doesn't have a `source_class_uri` attribute (but it does have a
+        #       `source_class_name` attribute), we derive its `class_uri` from that `source_class_name` attribute.
         #
         class_uri_and_field_name_tuples: Set[Tuple[str, str]] = set()
-        for p_ref in potential_references_in_collection:
+        for potential_reference in potential_references_in_collection:
             class_uri = translate_schema_class_name_into_class_uri(
-                schema_view=schema_view, schema_class_name=p_ref.source_class_name
+                schema_view=schema_view, schema_class_name=potential_reference.source_class_name
             )
             if class_uri is None:
-                raise ValueError(f"Failed to translate schema class name '{p_ref.source_class_name}' into class_uri.")
-            class_uri_and_field_name_tuple = (class_uri, p_ref.source_field_name)
+                raise ValueError(
+                    f"Failed to translate schema class name '{potential_reference.source_class_name}' into class_uri."
+                )
+            class_uri_and_field_name_tuple = (class_uri, potential_reference.source_field_name)
             class_uri_and_field_name_tuples.add(class_uri_and_field_name_tuple)
 
         # For each distinct combination of `class_uri` and `field_name`, check whether any documents in this
