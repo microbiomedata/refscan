@@ -30,6 +30,7 @@ def connect_to_database(mongo_uri: str, database_name: str, verbose: bool = True
     return mongo_client
 
 
+@cache  # memoizes the decorated function
 def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     """
     Returns the names of the slots of the `Database` class that describe database collections.
@@ -53,6 +54,7 @@ def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     return collection_names
 
 
+@cache  # memoizes the decorated function
 def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collection_name: str) -> list[str]:
     r"""
     Returns a list of the names of the classes whose instances can be stored in the specified collection,
@@ -65,6 +67,7 @@ def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collec
     return names_of_eligible_classes
 
 
+@cache  # memoizes the decorated function
 def get_collection_name_to_class_names_map(
     schema_view: SchemaView,
 ) -> Dict[str, List[str]]:
