@@ -28,9 +28,12 @@ def identify_referring_documents(
     r"""
     Identifies documents that reference the specified one.
 
-    This function scans the database for documents that reference the specified document.
-    This function only searches collections and fields that the _schema_ says can reference
-    the specified document.
+    Note: This function only searches collections and fields that the _schema_ says
+          can reference the specified document. If an arbitrary collection contains
+          a document that has a field that contains the `id` of the specified document
+          (e.g. the `foo_set` collection contains a document whose `nickname` field
+          contains `someIdentifier`), it is not necessarily the case that this function
+          will consider that to be a reference. It depends upon what the _schema_ says.
 
     Note: This can be useful for determining whether the specified document can be safely deleted.
 
