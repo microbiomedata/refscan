@@ -8,10 +8,10 @@ import linkml_runtime
 from refscan.lib.constants import console
 from refscan.lib.helpers import (
     connect_to_database,
+    get_collection_name_to_class_names_map,
     get_collection_names_from_schema,
     get_lowercase_key,
     print_section_header,
-    get_names_of_classes_eligible_for_collection,
     identify_references,
 )
 from refscan.lib.ViolationList import ViolationList
@@ -134,12 +134,7 @@ def scan(
     console.print(f"Collections described by schema: {len(collection_names)}")
 
     # For each collection, determine the names of the classes whose instances can be stored in that collection.
-    collection_name_to_class_names = {}  # example: { "study_set": ["Study"] }
-    for collection_name in sorted(collection_names):
-        collection_name_to_class_names[collection_name] = get_names_of_classes_eligible_for_collection(
-            schema_view=schema_view,
-            collection_name=collection_name,
-        )
+    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view=schema_view)
 
     # Identify the inter-document references that the schema allows to exist.
     references = identify_references(
