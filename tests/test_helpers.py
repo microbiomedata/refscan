@@ -7,6 +7,7 @@ from refscan.lib.helpers import (
     init_progress_bar,
     get_collection_names_from_schema,
     get_names_of_classes_eligible_for_collection,
+    get_collection_name_to_class_names_map,
     get_names_of_classes_in_effective_range_of_slot,
     translate_class_uri_into_schema_class_name,
     translate_schema_class_name_into_class_uri,
@@ -66,6 +67,17 @@ def test_get_names_of_classes_eligible_for_collection():
     assert len(collection_names) == 2
     assert "Fruit" in collection_names
     assert "Carrot" in collection_names
+
+
+def test_get_collection_name_to_class_names_map():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_class_with_polymorphic_collections.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view)
+    assert len(collection_name_to_class_names) == 3
+    assert collection_name_to_class_names["biosample_set"] == ["Biosample"]
+    assert collection_name_to_class_names["study_set"] == ["Study"]
+    assert collection_name_to_class_names["material_entity_set"] == ["Biosample", "MaterialEntity"]
 
 
 def test_get_names_of_classes_in_effective_range_of_slot():

@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 from functools import cache
 
 from pymongo import MongoClient, timeout
@@ -63,6 +63,29 @@ def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collec
         schema_view=schema_view, slot_definition=slot_definition
     )
     return names_of_eligible_classes
+
+
+def get_collection_name_to_class_names_map(
+    schema_view: SchemaView,
+) -> Dict[str, List[str]]:
+    r"""
+    Returns a mapping of collection names to the names of the classes whose instances can be stored
+    in those collections, according to the specified `SchemaView`.
+
+    Example output:
+    ```
+    {
+        "study_set": ["Study"],
+        "biosample_set": ["Biosample"],
+        ...
+    }
+    ```
+    """
+    collection_name_to_class_names = {}
+    for collection_name in get_collection_names_from_schema(schema_view):
+        class_names = get_names_of_classes_eligible_for_collection(schema_view, collection_name)
+        collection_name_to_class_names[collection_name] = class_names
+    return collection_name_to_class_names
 
 
 @cache  # memoizes the decorated function
