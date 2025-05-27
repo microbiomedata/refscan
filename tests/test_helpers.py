@@ -77,7 +77,9 @@ def test_get_collection_name_to_class_names_map():
     assert len(collection_name_to_class_names) == 3
     assert collection_name_to_class_names["biosample_set"] == ["Biosample"]
     assert collection_name_to_class_names["study_set"] == ["Study"]
-    assert collection_name_to_class_names["material_entity_set"] == ["Biosample", "MaterialEntity"]
+    material_entity_set_classes = collection_name_to_class_names["material_entity_set"]
+    assert len(material_entity_set_classes) == 2
+    assert set(material_entity_set_classes) == set(["Biosample", "MaterialEntity"])  # order is non-deterministic
 
 
 def test_get_names_of_classes_in_effective_range_of_slot():
