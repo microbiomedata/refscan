@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 
 from pymongo.database import Database
 from pymongo.client_session import ClientSession
@@ -118,7 +118,7 @@ class Finder:
             return self.cached_id_presence_by_collection[collection_name][document_id]
 
     def check_whether_document_having_id_exists_among_collections(
-        self, document_id: str, collection_names: List[str], client_session: ClientSession = None
+        self, document_id: str, collection_names: List[str], client_session: Optional[ClientSession] = None
     ) -> Optional[str]:
         r"""
         Checks whether any document in any of the specified collections has the specified value in its `id` field.
@@ -182,3 +182,48 @@ class Finder:
             )
 
         return name_of_collection_containing_target_document
+
+    def find_documents_having_type_and_value_in_field(
+        self,
+        collection_name: str,
+        type_and_field_name_tuples: List[Tuple[str, str]],
+        value: str,
+        client_session: Optional[ClientSession] = None,
+    ) -> List[dict]:
+        r"""
+        Finds all documents residing in the specified collection that—for any of the specified
+        `type`-and-`field_name` combinations—have both (a) that `type` value and (b) the specified
+        `value` value in their `field_name` field. Returns a list of descriptors of those
+        documents (each descriptor consists of the document's `_id`, `id`, and `type`).
+
+        For example, if the `type_and_field_name_tuples` parameter contains the tuple
+        `("nmdc:Study", "part_of")`, and the `value` parameter is `"nmdc:sty-00-000001"`,
+        then this function will return all documents in the specified collection where both
+        (a) the document's `type` field contains the value `"nmdc:Study"` and
+        (b) the document's `part_of` field contains the value `"nmdc:sty-00-000001"`.
+
+        Note: `type_and_field_name_tuples` is a list of tuples, where the first item in each tuple is a
+              `type` value (e.g. "nmdc:Study") and the second item is a field name (e.g. "part_of").
+
+        If a `pymongo.client_session.ClientSession` is specified, this function will access the database within
+        the context of that session.
+        """
+
+        # Build the query filter terms based on the `type`-and-`field_name` tuples.
+        query_filter_terms = []
+        for type_and_field_name_tuple in type_and_field_name_tuples:
+            type_value, field_name = type_and_field_name_tuple
+            query_filter_term = {"type": type_value, field_name: value}
+            query_filter_terms.append(query_filter_term)
+
+        # Define the overall query filter as a logical "OR" of the individual terms.
+        query_filter = {"$or": query_filter_terms}
+
+        # Only request essential data from the database (as a performance optimization).
+        projection = ["_id", "id", "type"]
+
+        documents = []
+        collection = self.db.get_collection(collection_name)
+        for document in collection.find(query_filter, projection=projection, session=client_session):
+            documents.append(document)
+        return documents

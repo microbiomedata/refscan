@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Set, Tuple
 
 from pymongo.database import Database
 from pymongo.client_session import ClientSession
@@ -8,12 +8,103 @@ from linkml_runtime import SchemaView
 from refscan.lib.Finder import Finder
 from refscan.lib.helpers import (
     derive_schema_class_name_from_document,
+    translate_class_uri_into_schema_class_name,
+    translate_schema_class_name_into_class_uri,
     init_progress_bar,
 )
 from refscan.lib.ReferenceList import ReferenceList
 from refscan.lib.Violation import Violation
 from refscan.lib.ViolationList import ViolationList
 from refscan.lib.constants import console as default_console
+
+
+def identify_referring_documents(
+    document: dict,
+    schema_view: SchemaView,
+    references: ReferenceList,
+    finder: Finder,
+    client_session: Optional[ClientSession] = None,
+) -> List[dict]:
+    r"""
+    Identifies documents that reference the specified one.
+
+    Note: This function only searches collections and fields that the _schema_ says
+          can reference the specified document. If an arbitrary collection contains
+          a document that has a field that contains the `id` of the specified document
+          (e.g. the `foo_set` collection contains a document whose `nickname` field
+          contains `someIdentifier`), it is not necessarily the case that this function
+          will consider that to be a reference. It depends upon what the _schema_ says.
+
+    Note: This can be useful for determining whether the specified document can be safely deleted.
+
+    :param document: The document whose incoming references you want to identify
+    :param schema_view: A `SchemaView` bound to the schema
+    :param references: A `ReferenceList` derived from the schema
+    :param finder: A `Finder` bound to the database being scanned
+    :param client_session: A `pymongo.client_session.ClientSession` instance that, if specified, will be used when
+                           searching for referring documents. If a transaction happens to be pending on that session,
+                           the scan will effectively happen on the database as it _would_ exist if that transaction
+                           were to be committed.
+    :return: A list of descriptors of documents that reference the specified document
+    """
+
+    # Initialize a list of descriptors of documents that reference the specified document.
+    referring_document_descriptors = []
+
+    # Get the specified document's `id` and derive its schema class name.
+    document_id = document["id"]
+    document_class_name = derive_schema_class_name_from_document(schema_view, document)
+    if document_class_name is None:
+        raise ValueError(f"Failed to identify schema class of document having `id`: {document_id}")
+
+    # Identify potential references to the specified document, then group them by their source collection names.
+    potential_references_to_document = references.get_by_target_class_name(document_class_name)
+    potential_references_by_source_collection = potential_references_to_document.group_by_source_collection_name()
+
+    # For each source collection name, check each of its potential references.
+    for collection_name, potential_references_in_collection in potential_references_by_source_collection.items():
+        # Make a list of all the distinct `class_uri`-and-`field_name` tuples.
+        #
+        # Note: Since a `Reference` doesn't have a `source_class_uri` attribute (but it does have a
+        #       `source_class_name` attribute), we derive its `class_uri` from that `source_class_name` attribute.
+        #
+        class_uri_and_field_name_tuples: Set[Tuple[str, str]] = set()
+        for potential_reference in potential_references_in_collection:
+            class_uri = translate_schema_class_name_into_class_uri(
+                schema_view=schema_view, schema_class_name=potential_reference.source_class_name
+            )
+            if class_uri is None:
+                raise ValueError(
+                    f"Failed to translate schema class name '{potential_reference.source_class_name}' into class_uri."
+                )
+            class_uri_and_field_name_tuple = (class_uri, potential_reference.source_field_name)
+            class_uri_and_field_name_tuples.add(class_uri_and_field_name_tuple)
+
+        # For each distinct combination of `class_uri` and `field_name`, check whether any documents in this
+        # collection both (a) have a `type` value matching that `class_uri` and (b) have the subject document's
+        # `id` value in the specified field.
+        referring_documents = finder.find_documents_having_type_and_value_in_field(
+            collection_name=collection_name,
+            type_and_field_name_tuples=list(class_uri_and_field_name_tuples),
+            value=document_id,
+            client_session=client_session,
+        )
+
+        # For each referring document, store a descriptor of it.
+        for referring_document in referring_documents:
+            source_class_name = translate_class_uri_into_schema_class_name(
+                schema_view=schema_view,
+                class_uri=referring_document["type"],
+            )
+            document_descriptor = dict(
+                source_collection_name=collection_name,
+                source_class_name=source_class_name,
+                source_document_object_id=referring_document["_id"],
+                source_document_id=referring_document["id"],
+            )
+            referring_document_descriptors.append(document_descriptor)
+
+    return referring_document_descriptors
 
 
 def scan_outgoing_references(
@@ -25,7 +116,7 @@ def scan_outgoing_references(
     finder: Finder,
     collection_names: List[str],
     source_collection_name: str,
-    client_session: ClientSession = None,
+    client_session: Optional[ClientSession] = None,
     user_wants_to_locate_misplaced_documents: bool = False,
 ) -> ViolationList:
     r"""
@@ -37,16 +128,16 @@ def scan_outgoing_references(
     :param reference_field_names_by_source_class_name: Dictionary mapping class names to lists of reference field names
     :param references: A `ReferenceList` derived from the schema
     :param finder: A `Finder` bound to the database being scanned
-    :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
-                                                     collections after failing to find the referenced document among
-                                                     all the legal collections
+    :param collection_names: List of collection names that are described by the schema
     :param source_collection_name: Name of collection in which source document resides (this is included in the
                                    violation report in an attempt to facilitate investigation of violations)
     :param client_session: A `pymongo.client_session.ClientSession` instance that, if specified, will be used when
                            searching for referenced documents. If a transaction happens to be pending on that session,
                            the scan will effectively happen on the database as it _would_ exist if that transaction
                            were to be committed.
-    :param collection_names: List of collection names that are described by the schema
+    :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
+                                                     collections after failing to find the referenced document among
+                                                     all the legal collections
     """
 
     # Initialize a list of violations.

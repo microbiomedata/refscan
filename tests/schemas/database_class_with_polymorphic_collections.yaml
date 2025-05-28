@@ -1,0 +1,27 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Database:
+    slots:
+      - biosample_set
+      - study_set
+      - material_entity_set
+  Biosample:
+    is_a: MaterialEntity
+  Study: { }
+  MaterialEntity: { }
+
+slots:
+  biosample_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Biosample
+  study_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Study
+  material_entity_set:
+    inlined_as_list: true
+    multivalued: true
+    range: MaterialEntity

@@ -7,7 +7,10 @@ from refscan.lib.helpers import (
     init_progress_bar,
     get_collection_names_from_schema,
     get_names_of_classes_eligible_for_collection,
+    get_collection_name_to_class_names_map,
     get_names_of_classes_in_effective_range_of_slot,
+    translate_class_uri_into_schema_class_name,
+    translate_schema_class_name_into_class_uri,
     identify_references,
 )
 
@@ -64,6 +67,19 @@ def test_get_names_of_classes_eligible_for_collection():
     assert len(collection_names) == 2
     assert "Fruit" in collection_names
     assert "Carrot" in collection_names
+
+
+def test_get_collection_name_to_class_names_map():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_class_with_polymorphic_collections.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view)
+    assert len(collection_name_to_class_names) == 3
+    assert collection_name_to_class_names["biosample_set"] == ["Biosample"]
+    assert collection_name_to_class_names["study_set"] == ["Study"]
+    material_entity_set_classes = collection_name_to_class_names["material_entity_set"]
+    assert len(material_entity_set_classes) == 2
+    assert set(material_entity_set_classes) == set(["Biosample", "MaterialEntity"])  # order is non-deterministic
 
 
 def test_get_names_of_classes_in_effective_range_of_slot():
@@ -134,3 +150,57 @@ def test_identify_references():
     ]
     for expected_reference in expected_references:
         assert expected_reference in actual_references
+
+
+def test_translate_class_uri_into_schema_class_name():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:Car",
+        )
+        == "Car"
+    )
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:Boat",
+        )
+        == "Boat"
+    )
+    assert (
+        translate_class_uri_into_schema_class_name(
+            schema_view=schema_view,
+            class_uri="refscan:NonExistentClassUri",
+        )
+        is None
+    )
+
+
+def test_translate_schema_class_name_into_class_uri():
+    schema_view = linkml_runtime.SchemaView(schema="tests/schemas/schema_with_class_uri.yaml")
+    assert isinstance(schema_view, linkml_runtime.SchemaView)
+
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="Car",
+        )
+        == "refscan:Car"
+    )
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="Boat",
+        )
+        == "refscan:Boat"
+    )
+    assert (
+        translate_schema_class_name_into_class_uri(
+            schema_view=schema_view,
+            schema_class_name="NonExistentSchemaClassName",
+        )
+        is None
+    )

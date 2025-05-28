@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 from functools import cache
 
 from pymongo import MongoClient, timeout
@@ -30,6 +30,7 @@ def connect_to_database(mongo_uri: str, database_name: str, verbose: bool = True
     return mongo_client
 
 
+@cache  # memoizes the decorated function
 def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     """
     Returns the names of the slots of the `Database` class that describe database collections.
@@ -53,6 +54,7 @@ def get_collection_names_from_schema(schema_view: SchemaView) -> list[str]:
     return collection_names
 
 
+@cache  # memoizes the decorated function
 def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collection_name: str) -> list[str]:
     r"""
     Returns a list of the names of the classes whose instances can be stored in the specified collection,
@@ -63,6 +65,30 @@ def get_names_of_classes_eligible_for_collection(schema_view: SchemaView, collec
         schema_view=schema_view, slot_definition=slot_definition
     )
     return names_of_eligible_classes
+
+
+@cache  # memoizes the decorated function
+def get_collection_name_to_class_names_map(
+    schema_view: SchemaView,
+) -> Dict[str, List[str]]:
+    r"""
+    Returns a mapping of collection names to the names of the classes whose instances can be stored
+    in those collections, according to the specified `SchemaView`.
+
+    Example output:
+    ```
+    {
+        "study_set": ["Study"],
+        "biosample_set": ["Biosample"],
+        ...
+    }
+    ```
+    """
+    collection_name_to_class_names = {}
+    for collection_name in get_collection_names_from_schema(schema_view):
+        class_names = get_names_of_classes_eligible_for_collection(schema_view, collection_name)
+        collection_name_to_class_names[collection_name] = class_names
+    return collection_name_to_class_names
 
 
 @cache  # memoizes the decorated function
@@ -83,6 +109,22 @@ def translate_class_uri_into_schema_class_name(schema_view: SchemaView, class_ur
             schema_class_name = class_definition.name
             break
     return schema_class_name
+
+
+@cache  # memoizes the decorated function
+def translate_schema_class_name_into_class_uri(schema_view: SchemaView, schema_class_name: str) -> Optional[str]:
+    r"""
+    Returns the `class_uri` of the schema class having the specified name.
+
+    Example: "Biosample" (a schema class name) -> "nmdc:Biosample" (a `class_uri` value)
+    """
+    class_uri = None
+    all_class_definitions_in_schema = schema_view.all_classes()
+    for class_name, class_definition in all_class_definitions_in_schema.items():
+        if class_name == schema_class_name:
+            class_uri = class_definition.class_uri
+            break
+    return class_uri
 
 
 def derive_schema_class_name_from_document(schema_view: SchemaView, document: dict) -> Optional[str]:
