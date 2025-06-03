@@ -8,6 +8,7 @@ from linkml_runtime import SchemaView
 from refscan.lib.Finder import Finder
 from refscan.lib.helpers import (
     derive_schema_class_name_from_document,
+    get_collection_names_from_schema,
     translate_class_uri_into_schema_class_name,
     translate_schema_class_name_into_class_uri,
     init_progress_bar,
@@ -110,11 +111,8 @@ def identify_referring_documents(
 def scan_outgoing_references(
     document: dict,
     schema_view: SchemaView,
-    # TODO: Cache this dictionary, since it is derived from the schema alone.
-    reference_field_names_by_source_class_name: Dict[str, List[str]],
     references: ReferenceList,
     finder: Finder,
-    collection_names: List[str],
     source_collection_name: str,
     client_session: Optional[ClientSession] = None,
     user_wants_to_locate_misplaced_documents: bool = False,
@@ -125,10 +123,8 @@ def scan_outgoing_references(
 
     :param document: The source document from which the references emanate
     :param schema_view: A SchemaView bound to the schema
-    :param reference_field_names_by_source_class_name: Dictionary mapping class names to lists of reference field names
     :param references: A `ReferenceList` derived from the schema
     :param finder: A `Finder` bound to the database being scanned
-    :param collection_names: List of collection names that are described by the schema
     :param source_collection_name: Name of collection in which source document resides (this is included in the
                                    violation report in an attempt to facilitate investigation of violations)
     :param client_session: A `pymongo.client_session.ClientSession` instance that, if specified, will be used when
@@ -149,9 +145,15 @@ def scan_outgoing_references(
 
     # Get the document's schema class name so that we can interpret its fields accordingly.
     source_class_name = derive_schema_class_name_from_document(schema_view, document)
+    if source_class_name is None:
+        raise ValueError(f"Failed to derive schema class name from document having `id`: {source_document_id}")
 
     # Get the names of that class's fields that can contain references.
+    reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
     names_of_reference_fields = reference_field_names_by_source_class_name.get(source_class_name, [])
+
+    # Get the names of collections that are described by the schema.
+    collection_names = get_collection_names_from_schema(schema_view=schema_view)
 
     # Check each field that both (a) exists in the document and (b) can contain a reference.
     for field_name in names_of_reference_fields:

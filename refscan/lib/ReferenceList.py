@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 from pathlib import Path
 from dataclasses import fields, astuple
 from collections import UserList
@@ -17,6 +17,17 @@ class ReferenceList(UserList):
     Note: `UserList` is a base class that facilitates the implementation of custom list classes.
           One thing it does is enable sorting via `sorted(the_list)`.
     """
+
+    # A cached dictionary that maps source class names to a list of the names of
+    # the fields of that class that contain references. Initialized to `None` to
+    # indicate that it hasn't been computed/cached yet.
+    #
+    # Example: {"Study": ["part_of"]}
+    #
+    # TODO: Consider implementing caching via functools's `@cached_property` decorator instead.
+    #       Reference: https://docs.python.org/3/library/functools.html#functools.cached_property
+    #
+    _reference_field_names_by_source_class_name: Optional[Dict[str, List[str]]] = None
 
     def get_source_collection_names(self) -> list[str]:
         """
@@ -101,11 +112,16 @@ class ReferenceList(UserList):
 
     def get_reference_field_names_by_source_class_name(self) -> Dict[str, List[str]]:
         r"""
-        Returns a dictionary that maps source class names to a list of the
-        names of the fields of that class that contain references.
+        Returns a dictionary that maps source class names to a list of the names of
+        the fields of that class that contain references.
 
         Example: {"Study": ["part_of"]}
         """
+
+        # If this dictionary has already been computed by this class, return that cached dictionary.
+        if isinstance(self._reference_field_names_by_source_class_name, dict):
+            return self._reference_field_names_by_source_class_name
+
         reference_field_names_by_source_class_name: Dict[str, List[str]] = {}
         for reference in self.data:
             source_class_name = reference.source_class_name
@@ -118,6 +134,9 @@ class ReferenceList(UserList):
             # If the source field name isn't already in this class's list, append it.
             if source_field_name not in reference_field_names_by_source_class_name[source_class_name]:
                 reference_field_names_by_source_class_name[source_class_name].append(source_field_name)
+
+        # Cache the dictionary for subsequent invocations of this method.
+        self._reference_field_names_by_source_class_name = reference_field_names_by_source_class_name
 
         return reference_field_names_by_source_class_name
 
