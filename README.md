@@ -292,6 +292,16 @@ While editing the tool's source code, you can run the tool as you normally would
 poetry run refscan --help
 ```
 
+### Check types
+
+We use [mypy](https://mypy.readthedocs.io/en/stable/) as the static type checker for `refscan`.
+
+You can perform static type checking by running the following command from the root directory of the repository:
+
+```shell
+poetry run mypy
+```
+
 ### Run tests
 
 We use [pytest](https://docs.pytest.org/en/8.2.x/) as the testing framework for `refscan`.
