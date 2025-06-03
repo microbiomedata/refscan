@@ -18,6 +18,8 @@ def connect_to_database(mongo_uri: str, database_name: str, verbose: bool = True
     mongo_client: MongoClient = MongoClient(host=mongo_uri, directConnection=True)
 
     with timeout(5):  # if any message exchange takes > 5 seconds, this will raise an exception
+        if mongo_client.address is None:
+            raise ValueError("Failed to determine MongoDB server hostname or port number.")
         (host, port_number) = mongo_client.address
 
         if verbose:

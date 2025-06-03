@@ -141,7 +141,7 @@ def scan_outgoing_references(
 
     # Get the document's `id` so that we can include it in this script's output.
     source_document_object_id = document["_id"]
-    source_document_id = document["id"] if "id" in document else None
+    source_document_id: Optional[str] = document["id"] if "id" in document else None
 
     # Get the document's schema class name so that we can interpret its fields accordingly.
     source_class_name = derive_schema_class_name_from_document(schema_view, document)
@@ -192,6 +192,15 @@ def scan_outgoing_references(
                                 client_session=client_session,
                             )
                         )
+
+                    # Handle the case where the source document does not have an `id`.
+                    #
+                    # Note: As a reminder, according to the NMDC Schema (as of version v11.7.0), documents in the
+                    #       `functional_annotation_agg` collection do not have an `id` field.
+                    #       Reference: https://microbiomedata.github.io/nmdc-schema/FunctionalAnnotationAggMember/
+                    #
+                    if not isinstance(source_document_id, str):
+                        source_document_id = ""
 
                     # Instantiate a `Violation` containing information about this referential integrity violation.
                     violation = Violation(
