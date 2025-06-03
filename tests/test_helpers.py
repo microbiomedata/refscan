@@ -73,7 +73,7 @@ def test_get_collection_name_to_class_names_map():
     schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_class_with_polymorphic_collections.yaml")
     assert isinstance(schema_view, linkml_runtime.SchemaView)
 
-    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view)
+    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view=schema_view)
     assert len(collection_name_to_class_names) == 3
     assert collection_name_to_class_names["biosample_set"] == ["Biosample"]
     assert collection_name_to_class_names["study_set"] == ["Study"]
@@ -115,12 +115,7 @@ def test_get_names_of_classes_in_effective_range_of_slot():
 def test_identify_references():
     schema_view = linkml_runtime.SchemaView(schema="tests/schemas/database_with_references.yaml")
 
-    collection_name_to_class_names = {}
-    for collection_name in get_collection_names_from_schema(schema_view):
-        collection_name_to_class_names[collection_name] = get_names_of_classes_eligible_for_collection(
-            schema_view=schema_view,
-            collection_name=collection_name,
-        )
+    collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view=schema_view)
 
     actual_references = identify_references(schema_view, collection_name_to_class_names)
     assert len(actual_references) == 3
