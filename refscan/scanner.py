@@ -8,6 +8,7 @@ from linkml_runtime import SchemaView
 from refscan.lib.Finder import Finder
 from refscan.lib.helpers import (
     derive_schema_class_name_from_document,
+    get_collection_names_from_schema,
     translate_class_uri_into_schema_class_name,
     translate_schema_class_name_into_class_uri,
     init_progress_bar,
@@ -110,11 +111,8 @@ def identify_referring_documents(
 def scan_outgoing_references(
     document: dict,
     schema_view: SchemaView,
-    # TODO: Cache this dictionary, since it is derived from the schema alone.
-    reference_field_names_by_source_class_name: Dict[str, List[str]],
     references: ReferenceList,
     finder: Finder,
-    collection_names: List[str],
     source_collection_name: str,
     client_session: Optional[ClientSession] = None,
     user_wants_to_locate_misplaced_documents: bool = False,
@@ -125,10 +123,8 @@ def scan_outgoing_references(
 
     :param document: The source document from which the references emanate
     :param schema_view: A SchemaView bound to the schema
-    :param reference_field_names_by_source_class_name: Dictionary mapping class names to lists of reference field names
     :param references: A `ReferenceList` derived from the schema
     :param finder: A `Finder` bound to the database being scanned
-    :param collection_names: List of collection names that are described by the schema
     :param source_collection_name: Name of collection in which source document resides (this is included in the
                                    violation report in an attempt to facilitate investigation of violations)
     :param client_session: A `pymongo.client_session.ClientSession` instance that, if specified, will be used when
@@ -145,13 +141,19 @@ def scan_outgoing_references(
 
     # Get the document's `id` so that we can include it in this script's output.
     source_document_object_id = document["_id"]
-    source_document_id = document["id"] if "id" in document else None
+    source_document_id: Optional[str] = document["id"] if "id" in document else None
 
     # Get the document's schema class name so that we can interpret its fields accordingly.
     source_class_name = derive_schema_class_name_from_document(schema_view, document)
+    if source_class_name is None:
+        raise ValueError(f"Failed to derive schema class name from document having `id`: {source_document_id}")
 
     # Get the names of that class's fields that can contain references.
+    reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
     names_of_reference_fields = reference_field_names_by_source_class_name.get(source_class_name, [])
+
+    # Get the names of collections that are described by the schema.
+    collection_names = get_collection_names_from_schema(schema_view=schema_view)
 
     # Check each field that both (a) exists in the document and (b) can contain a reference.
     for field_name in names_of_reference_fields:
@@ -191,6 +193,15 @@ def scan_outgoing_references(
                             )
                         )
 
+                    # Handle the case where the source document does not have an `id`.
+                    #
+                    # Note: As a reminder, according to the NMDC Schema (as of version v11.7.0), documents in the
+                    #       `functional_annotation_agg` collection do not have an `id` field.
+                    #       Reference: https://microbiomedata.github.io/nmdc-schema/FunctionalAnnotationAggMember/
+                    #
+                    if not isinstance(source_document_id, str):
+                        source_document_id = ""
+
                     # Instantiate a `Violation` containing information about this referential integrity violation.
                     violation = Violation(
                         source_collection_name=source_collection_name,
@@ -212,7 +223,6 @@ def scan(
     db: Database,
     schema_view: SchemaView,
     references: ReferenceList,
-    collection_names: List[str],
     names_of_source_collections_to_skip: List[str],
     user_wants_to_locate_misplaced_documents: bool = False,
     console: Console = default_console,
@@ -226,7 +236,6 @@ def scan(
     :param schema_view: A SchemaView bound to the schema with which that database complies
                         (except that it may not be compliant in terms of referential integrity)
     :param references: A `ReferenceList` derived from the schema
-    :param collection_names: List of collection names that are described by the schema
     :param names_of_source_collections_to_skip: List of source collections to skip
     :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
                                                      collections after failing to find the referenced document among
@@ -234,9 +243,6 @@ def scan(
     :param console: A `Console` to which the function can print messages
     :param verbose: Whether you want the function to print a higher-than-normal amount of information to the console
     """
-
-    # Get a dictionary that maps source class names to the names of their fields that can contain references.
-    reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
 
     # Initialize a progress bar.
     custom_progress = init_progress_bar()
@@ -317,10 +323,8 @@ def scan(
                 violations = scan_outgoing_references(
                     document=document,
                     schema_view=schema_view,
-                    reference_field_names_by_source_class_name=reference_field_names_by_source_class_name,
                     references=references,
                     finder=finder,
-                    collection_names=collection_names,
                     source_collection_name=source_collection_name,
                     user_wants_to_locate_misplaced_documents=user_wants_to_locate_misplaced_documents,
                 )

@@ -12,7 +12,7 @@ def get_package_metadata(key: str) -> str:
     metadata_value = ""
     try:
         package_metadata = metadata("refscan")
-        metadata_value = package_metadata.get(key)
+        metadata_value = package_metadata.get(key, "")
     except PackageNotFoundError:
         pass
     return metadata_value

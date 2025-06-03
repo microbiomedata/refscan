@@ -43,6 +43,10 @@ pytest-cov = "^5.0.0"
 # We use `mongomock` to test MongoDB interaction without involving a real MongoDB instance.
 # Docs: https://github.com/mongomock/mongomock
 mongomock = "^4.3.0"
+# We use `mypy` to perform static type checking.
+# Usage: $ poetry run mypy
+# Docs: https://mypy.readthedocs.io/en/stable/
+mypy = "^1.16.0"
 
 [tool.poetry.scripts]
 # Reference: https://python-poetry.org/docs/pyproject#scripts
@@ -60,6 +64,25 @@ addopts = "--doctest-modules --cov=refscan"
 # Make it so that, when someone runs `$ poetry run black`, these default CLI options are used.
 # Reference: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-format
 line-length = 120
+
+[tool.mypy]
+# Make it so, when someone runs `$ poetry run mypy`, these default CLI options are used.
+# Reference: https://mypy.readthedocs.io/en/stable/config_file.html
+files = "."
+
+[[tool.mypy.overrides]]
+# Silence the following error:
+# > Skipping analyzing "linkml_runtime": module is installed, but missing library stubs or py.typed marker  [import-untyped] 
+#
+# Note: We first tried using the following, but it seemed to have no effect on the behavior of mypy when run via `$ poetry run mypy`.
+#       ```
+#       [mypy-linkml_runtime]
+#       ignore_missing_imports = true
+#       ```
+#       So, we—instead—used the syntax shown on: https://stackoverflow.com/a/74198016
+#
+module = "linkml_runtime"
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core"]

@@ -24,8 +24,8 @@ class Finder:
         #       from source documents that we process _temporally close_ to one another, likely point to target
         #       documents residing _in the same collections_ as one another.
         #
-        self.cached_collection_names_where_recently_found = []
-        self.cache_size = 2  # we'll cache up to 2 collection names
+        self.cached_collection_names_where_recently_found: List[str] = []
+        self.cache_size: int = 2  # we'll cache up to 2 collection names
 
         # Initialize our cache of document `id` presences/absences by collection.
         #

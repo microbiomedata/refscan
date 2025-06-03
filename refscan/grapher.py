@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union
+from typing import Union, List, Dict, Any
 import json
 import base64
 from importlib import resources
@@ -14,6 +14,11 @@ from refscan.lib.helpers import (
     get_collection_names_from_schema,
     identify_references,
 )
+
+# Define some type aliases that we can reference later, to simplify the latter type hints.
+# TODO: Update these type hints to not use `Any`.
+NodeType = Dict[str, Dict[str, Any]]
+EdgeType = Dict[str, Dict[str, Any]]
 
 
 class Subject(str, Enum):
@@ -105,8 +110,8 @@ def graph(
     #
     # Reference: https://js.cytoscape.org/#notation/elements-json
     #
-    nodes = []
-    edges = []
+    nodes: List[NodeType] = []
+    edges: List[EdgeType] = []
     for r in references:
         # Get the source and target names depending upon the subject of the graph.
         source_name = r.source_collection_name if subject == Subject.collection else r.source_class_name

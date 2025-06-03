@@ -1,0 +1,40 @@
+id: my-schema
+name: MySchema
+
+classes:
+  Database:
+    class_uri: refscan:Database
+    slots:
+      - company_set
+      - employee_set
+  Company:
+    class_uri: refscan:Company
+    slots:
+      - shareholders  # could have been named `has_shared_owned_by`
+      - type
+  Employee:
+    class_uri: refscan:Employee
+    slots:
+      - works_for
+      - managed_by
+      - type
+
+slots:
+  company_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Company
+  employee_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Employee
+  works_for:
+    range: Company
+  shareholders:
+    range: Employee
+    multivalued: true
+  managed_by:
+    range: Employee
+  type:
+    range: string
+
