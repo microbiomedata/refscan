@@ -214,7 +214,6 @@ def scan(
     db: Database,
     schema_view: SchemaView,
     references: ReferenceList,
-    collection_names: List[str],
     names_of_source_collections_to_skip: List[str],
     user_wants_to_locate_misplaced_documents: bool = False,
     console: Console = default_console,
@@ -228,7 +227,6 @@ def scan(
     :param schema_view: A SchemaView bound to the schema with which that database complies
                         (except that it may not be compliant in terms of referential integrity)
     :param references: A `ReferenceList` derived from the schema
-    :param collection_names: List of collection names that are described by the schema
     :param names_of_source_collections_to_skip: List of source collections to skip
     :param user_wants_to_locate_misplaced_documents: Whether the user wants the function to proceed to search illegal
                                                      collections after failing to find the referenced document among
@@ -236,9 +234,6 @@ def scan(
     :param console: A `Console` to which the function can print messages
     :param verbose: Whether you want the function to print a higher-than-normal amount of information to the console
     """
-
-    # Get a dictionary that maps source class names to the names of their fields that can contain references.
-    reference_field_names_by_source_class_name = references.get_reference_field_names_by_source_class_name()
 
     # Initialize a progress bar.
     custom_progress = init_progress_bar()
@@ -319,10 +314,8 @@ def scan(
                 violations = scan_outgoing_references(
                     document=document,
                     schema_view=schema_view,
-                    reference_field_names_by_source_class_name=reference_field_names_by_source_class_name,
                     references=references,
                     finder=finder,
-                    collection_names=collection_names,
                     source_collection_name=source_collection_name,
                     user_wants_to_locate_misplaced_documents=user_wants_to_locate_misplaced_documents,
                 )

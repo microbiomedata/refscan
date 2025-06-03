@@ -172,7 +172,6 @@ def scan(
         db=db,
         schema_view=schema_view,
         references=references,
-        collection_names=collection_names,
         names_of_source_collections_to_skip=names_of_source_collections_to_skip,
         user_wants_to_locate_misplaced_documents=user_wants_to_locate_misplaced_documents,
         verbose=verbose,
