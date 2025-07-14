@@ -52,6 +52,10 @@ def identify_referring_documents(
     # Initialize a list of descriptors of documents that reference the specified document.
     referring_document_descriptors = []
 
+    # If the specified document does not have an `id` field, we know it cannot be referenced.
+    if "id" not in document:
+        return referring_document_descriptors
+
     # Get the specified document's `id` and derive its schema class name.
     document_id = document["id"]
     document_class_name = derive_schema_class_name_from_document(schema_view, document)
