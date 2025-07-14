@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
         run: poetry install --no-interaction
       - name: Update package version  # Docs: https://python-poetry.org/docs/cli/#version
-        run: poetry version ${{ github.ref_name }}
+        run: poetry version ${{ github.event.release.tag_name }}
       - name: Build package  # Docs: https://python-poetry.org/docs/cli/#build
         run: poetry build
       - name: Save the built package for publishing later  # Docs: https://github.com/actions/upload-artifact
