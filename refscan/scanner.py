@@ -52,6 +52,10 @@ def identify_referring_documents(
     # Initialize a list of descriptors of documents that reference the specified document.
     referring_document_descriptors = []
 
+    # If the specified document does not have an `id` field, we know it cannot be referenced.
+    if "id" not in document:
+        return referring_document_descriptors
+
     # Get the specified document's `id` and derive its schema class name.
     document_id = document["id"]
     document_class_name = derive_schema_class_name_from_document(schema_view, document)
@@ -93,6 +97,17 @@ def identify_referring_documents(
 
         # For each referring document, store a descriptor of it.
         for referring_document in referring_documents:
+
+            # Handle the case where the source document does not have an `id`.
+            #
+            # Note: As a reminder, according to the NMDC Schema (as of version v11.8.0), documents in the
+            #       `functional_annotation_agg` collection do not have an `id` field.
+            #       Reference: https://microbiomedata.github.io/nmdc-schema/FunctionalAnnotationAggMember/
+            #
+            source_document_id = referring_document.get("id", None)
+            if not isinstance(source_document_id, str):
+                source_document_id = ""
+
             source_class_name = translate_class_uri_into_schema_class_name(
                 schema_view=schema_view,
                 class_uri=referring_document["type"],
@@ -101,7 +116,7 @@ def identify_referring_documents(
                 source_collection_name=collection_name,
                 source_class_name=source_class_name,
                 source_document_object_id=referring_document["_id"],
-                source_document_id=referring_document["id"],
+                source_document_id=source_document_id,
             )
             referring_document_descriptors.append(document_descriptor)
 
@@ -195,7 +210,7 @@ def scan_outgoing_references(
 
                     # Handle the case where the source document does not have an `id`.
                     #
-                    # Note: As a reminder, according to the NMDC Schema (as of version v11.7.0), documents in the
+                    # Note: As a reminder, according to the NMDC Schema (as of version v11.8.0), documents in the
                     #       `functional_annotation_agg` collection do not have an `id` field.
                     #       Reference: https://microbiomedata.github.io/nmdc-schema/FunctionalAnnotationAggMember/
                     #

@@ -38,6 +38,15 @@ def seeded_db():
             {"id": "e-3", "works_for": "c-2", "type": "refscan:Employee"},
         ]
     )
+    # Note: These documents lack an `id` field. There is a collection in the real NMDC schema
+    #       whose documents lack an `id` field (i.e. the `functional_annotation_agg` collection),
+    #       and we want to ensure that case is handled correctly.
+    db["testimonial_set"].insert_many(
+        [
+            {"company": "c-2", "message": "Good company!", "type": "refscan:Testimonial"},
+            {"company": "c-2", "message": "Great company!", "type": "refscan:Testimonial"},
+        ]
+    )
 
     return db
 
@@ -69,17 +78,20 @@ def test_identify_referring_documents(schema_view, seeded_db):
     assert referring_document_descriptors[0]["source_collection_name"] == "employee_set"
     assert referring_document_descriptors[0]["source_class_name"] == "Employee"
 
-    # Case 3: A company that has 2 referring documents.
+    # Case 3: A company that has 4 referring documents.
     referring_document_descriptors = identify_referring_documents(
         document={"id": "c-2", "type": "refscan:Company"},
         schema_view=schema_view,
         references=references,
         finder=finder,
     )
-    assert len(referring_document_descriptors) == 2
-    assert set(d["source_collection_name"] for d in referring_document_descriptors) == {"employee_set"}
-    assert set(d["source_class_name"] for d in referring_document_descriptors) == {"Employee"}
-    assert set(d["source_document_id"] for d in referring_document_descriptors) == {"e-2", "e-3"}
+    assert len(referring_document_descriptors) == 4
+    assert set(d["source_collection_name"] for d in referring_document_descriptors) == {
+        "employee_set",
+        "testimonial_set",
+    }
+    assert set(d["source_class_name"] for d in referring_document_descriptors) == {"Employee", "Testimonial"}
+    assert set(d["source_document_id"] for d in referring_document_descriptors) == {"e-2", "e-3", ""}
 
 
 def test_scan_outgoing_references(schema_view, seeded_db):
