@@ -86,7 +86,10 @@ def test_identify_referring_documents(schema_view, seeded_db):
         finder=finder,
     )
     assert len(referring_document_descriptors) == 4
-    assert set(d["source_collection_name"] for d in referring_document_descriptors) == {"employee_set", "testimonial_set"}
+    assert set(d["source_collection_name"] for d in referring_document_descriptors) == {
+        "employee_set",
+        "testimonial_set",
+    }
     assert set(d["source_class_name"] for d in referring_document_descriptors) == {"Employee", "Testimonial"}
     assert set(d["source_document_id"] for d in referring_document_descriptors) == {"e-2", "e-3", ""}
 
