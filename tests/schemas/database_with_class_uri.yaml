@@ -7,16 +7,26 @@ classes:
     slots:
       - company_set
       - employee_set
+      - testimonial_set
   Company:
     class_uri: refscan:Company
     slots:
+      - id
       - shareholders  # could have been named `has_shared_owned_by`
       - type
   Employee:
     class_uri: refscan:Employee
     slots:
+      - id
       - works_for
       - managed_by
+      - type
+  Testimonial:
+    class_uri: refscan:Testimonial
+    slots:
+      # Note: We intentionally left the `id` slot off of this class.
+      - company
+      - message
       - type
 
 slots:
@@ -28,6 +38,10 @@ slots:
     inlined_as_list: true
     multivalued: true
     range: Employee
+  testimonial_set:
+    inlined_as_list: true
+    multivalued: true
+    range: Testimonial
   works_for:
     range: Company
   shareholders:
@@ -35,6 +49,12 @@ slots:
     multivalued: true
   managed_by:
     range: Employee
+  id:
+    range: string
   type:
     range: string
+  message:
+    range: string
+  company:
+    range: Company
 

@@ -38,6 +38,15 @@ def seeded_db():
             {"id": "e-3", "works_for": "c-2", "type": "refscan:Employee"},
         ]
     )
+    # Note: These documents lack an `id` field. There is a collection in the real NMDC schema
+    #       whose documents lack an `id` field (i.e. the `functional_annotation_agg` collection),
+    #       and we want to ensure that case is handled correctly.
+    db["testimonial_set"].insert_many(
+        [
+            {"company": "c-2", "message": "Great company!", "type": "refscan:Testimonial"},
+            {"company": "c-2", "message": "Excellent service!", "type": "refscan:Testimonial"},
+        ]
+    )
 
     return db
 
