@@ -33,7 +33,7 @@ def graph(
             resolve_path=True,
             help="Filesystem path at which you want **refscan** to generate the graph.",
         ),
-    ] = "graph.html",
+    ] = Path("graph.html"),
     subject: Annotated[
         grapher.Subject,
         typer.Option(
@@ -72,6 +72,10 @@ def graph(
 
     if verbose:
         console.print(html_result)
+
+    # Ensure graph_file_path is not None before using it
+    if graph_file_path is None:
+        raise ValueError("Graph file path cannot be None")
 
     with open(graph_file_path, "w") as f:
         f.write(html_result)
