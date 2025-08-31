@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 from typing_extensions import Annotated
 
 import typer
@@ -24,7 +23,7 @@ def graph(
         ),
     ],
     graph_file_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option(
             "--graph",
             dir_okay=False,
@@ -33,7 +32,7 @@ def graph(
             resolve_path=True,
             help="Filesystem path at which you want **refscan** to generate the graph.",
         ),
-    ] = "graph.html",
+    ] = Path("graph.html"),
     subject: Annotated[
         grapher.Subject,
         typer.Option(

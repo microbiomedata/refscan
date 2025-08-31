@@ -50,7 +50,7 @@ def identify_referring_documents(
     """
 
     # Initialize a list of descriptors of documents that reference the specified document.
-    referring_document_descriptors = []
+    referring_document_descriptors: List[Dict] = []
 
     # If the specified document does not have an `id` field, we know it cannot be referenced.
     if "id" not in document:

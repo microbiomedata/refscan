@@ -71,7 +71,7 @@ def scan(
         ),
     ] = None,
     reference_report_file_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option(
             "--reference-report",
             dir_okay=False,
@@ -80,9 +80,9 @@ def scan(
             resolve_path=True,
             help="Filesystem path at which you want the program to generate its reference report.",
         ),
-    ] = "references.tsv",
+    ] = Path("references.tsv"),
     violation_report_file_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option(
             "--violation-report",
             dir_okay=False,
@@ -91,7 +91,7 @@ def scan(
             resolve_path=True,
             help="Filesystem path at which you want the program to generate its violation report.",
         ),
-    ] = "violations.tsv",
+    ] = Path("violations.tsv"),
     user_wants_to_skip_scan: Annotated[
         bool,
         typer.Option(
