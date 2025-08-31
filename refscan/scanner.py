@@ -97,7 +97,6 @@ def identify_referring_documents(
 
         # For each referring document, store a descriptor of it.
         for referring_document in referring_documents:
-
             # Handle the case where the source document does not have an `id`.
             #
             # Note: As a reminder, according to the NMDC Schema (as of version v11.8.0), documents in the
@@ -195,7 +194,6 @@ def scan_outgoing_references(
                     )
                 )
                 if name_of_collection_containing_target_document is None:
-
                     # If the user wants to locate misplaced documents,
                     # search all illegal collections for the misplaced document.
                     if user_wants_to_locate_misplaced_documents:
@@ -268,7 +266,6 @@ def scan(
 
     source_collections_and_their_violations: dict[str, ViolationList] = {}
     with custom_progress as progress:
-
         # Filter out the collections that the schema says can contain references, but that don't exist in the database.
         source_collection_names_in_db = []
         for collection_name in references.get_source_collection_names():
@@ -289,7 +286,6 @@ def scan(
         # contain "referrers" (documents), which of their slots can contain references (fields),
         # and which collections can contain the referred-to "referees" (documents).
         for source_collection_name in sorted(source_collection_names_in_db):
-
             # If this source collection is one of the ones the user wanted to skip, skip it now.
             if source_collection_name in names_of_source_collections_to_skip:
                 continue

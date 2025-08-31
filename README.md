@@ -330,7 +330,13 @@ You can _check_ the code's compliance with the "formatter rules" by running this
 uv run ruff format --check
 ```
 
-You can _format_ the code by omitting the `--check` flag:
+That will output a _list_ of files that don't comply. To see the violations, themselves, you can run:
+
+```shell
+uv run ruff format --diff
+```
+
+You can _format_ the code by omitting the `--check` and `--diff` flags:
 
 ```shell
 uv run ruff format
