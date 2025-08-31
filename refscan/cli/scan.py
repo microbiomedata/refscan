@@ -71,7 +71,7 @@ def scan(
         ),
     ] = None,
     reference_report_file_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option(
             "--reference-report",
             dir_okay=False,
@@ -82,7 +82,7 @@ def scan(
         ),
     ] = Path("references.tsv"),
     violation_report_file_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option(
             "--violation-report",
             dir_okay=False,
@@ -148,8 +148,6 @@ def scan(
 
     # Create a reference report in TSV format.
     console.print(f"Writing reference report: {reference_report_file_path}")
-    if reference_report_file_path is None:
-        raise ValueError("Reference report file path cannot be None")
     references.dump_to_tsv_file(file_path=reference_report_file_path)
 
     # Display a table of references.
@@ -209,7 +207,5 @@ def scan(
 
     # Create a TSV-formatted violation report that lists all violations among all collections.
     console.print(f"Writing violation report: {violation_report_file_path}")
-    if violation_report_file_path is None:
-        raise ValueError("Violation report file path cannot be None")
     all_violations.dump_to_tsv_file(file_path=violation_report_file_path)
     console.print()  # newline
