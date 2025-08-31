@@ -17,15 +17,13 @@ jobs:
     steps:
       - name: Check out commit  # Docs: https://github.com/actions/checkout
         uses: actions/checkout@v4
-      - name: Set up Python  # Docs: https://github.com/actions/setup-python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          # Specify a Python version that satisfies the `tool.poetry.dependencies.python`
-          # version requirement specified in `pyproject.toml`.
-          python-version: '3.9'
-      - name: Install Poetry  # Docs: https://github.com/snok/install-poetry
-        uses: snok/install-poetry@v1
-      - name: Install dependencies  # Docs: https://python-poetry.org/docs/cli/#install
-        run: poetry install --no-interaction
+          # Note: Caching (of the packages that `uv` builds while resolving dependencies) is "enabled by default on GitHub-hosted runners."
+          #       Reference: https://github.com/astral-sh/setup-uv/blob/main/README.md#enable-caching
+          #       Here, we make it so the cache gets invalidated whenever the `uv.lock` file changes.
+          #       Reference: https://github.com/astral-sh/setup-uv/blob/main/README.md#cache-dependency-glob
+          cache-dependency-glob: "uv.lock"
       - name: Check source code format
-        run: poetry run black --check .
+        run: uv run black --check .
