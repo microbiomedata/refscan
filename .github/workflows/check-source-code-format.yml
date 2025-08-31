@@ -26,4 +26,6 @@ jobs:
           #       Reference: https://github.com/astral-sh/setup-uv/blob/main/README.md#cache-dependency-glob
           cache-dependency-glob: "uv.lock"
       - name: Check source code format
-        run: uv run black --check .
+        run: uv run ruff format --check
+      - name: Check source code compliance with linter rules
+        run: uv run ruff check

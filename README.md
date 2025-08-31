@@ -319,24 +319,34 @@ uv run pytest
 
 ### Format code
 
-We use [`black`](https://black.readthedocs.io/en/stable/) as the code formatter for `refscan`. 
+We use [`ruff`](https://docs.astral.sh/ruff/formatter/) as the code _formatter_ for `refscan`.
 
-We do not use it with its default options. Instead, we include an option that allows lines to be 120 characters
-instead of the default 88 characters. That option is defined in the `[tool.black]` section of `pyproject.toml`.
+We mostly use it with its default rules. All of the ways we deviate from those are listed
+in the `[tool.ruff]` section of `pyproject.toml`.
 
-You can format all the Python code in the repository by running this command
-from the root directory of the repository:
+You can _check_ the code's compliance with the "formatter rules" by running this command from the root directory of the repository:
 
 ```shell
-uv run black .
+uv run ruff format --check
 ```
 
-#### Check format
-
-You can _check_ the format of the Python code by including the `--check` option, like this:
+You can _format_ the code by omitting the `--check` flag:
 
 ```shell
-uv run black --check .
+uv run ruff format
+```
+
+### Lint code
+
+We also use [`ruff`](https://docs.astral.sh/ruff/linter/) as the code _linter_ for `refscan`.
+
+We use it with its [default rules](https://docs.astral.sh/ruff/rules/), **plus** some additional ones,
+all of which are listed in the `[tool.ruff.lint]` section of `pyproject.toml`.
+
+You can _check_ the code's compliance with the "linter rules" by running this command from the root directory of the repository:
+
+```shell
+uv run ruff check
 ```
 
 ## Building and publishing
