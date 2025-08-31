@@ -248,10 +248,12 @@ pipx uninstall refscan
 
 ## Development
 
-We use [Poetry](https://python-poetry.org/) to both (a) manage dependencies and (b) build distributable packages that can be published to PyPI.
+We use [`uv`](https://docs.astral.sh/uv/) to both (a) manage dependencies and (b) build distributable packages that can be published to PyPI.
 
-- `pyproject.toml`: Configuration file for Poetry and other tools (was initialized via `$ poetry init`)
-- `poetry.lock`: List of dependencies, both direct and [indirect/transitive](https://en.wikipedia.org/wiki/Transitive_dependency)
+- `pyproject.toml`: [Configuration file](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) for `uv` and other tools
+- `uv.lock`: List of dependencies, both direct and [indirect/transitive](https://en.wikipedia.org/wiki/Transitive_dependency)
+
+> Note: We initialized this repository using Poetry. We switched from Poetry to `uv` at around commit `#1449ceca`.
 
 ### Clone repository
 
@@ -260,27 +262,28 @@ git clone https://github.com/microbiomedata/refscan.git
 cd refscan
 ```
 
-### Create virtual environment
+### Set up Python virtual environment
 
-Create a Poetry virtual environment and attach to its shell:
-
-```shell
-poetry shell
-```
-
-> You can see information about the Poetry virtual environment by running: `$ poetry env info`
-
-> You can detach from the Poetry virtual environment's shell by running: `$ exit`
-
-From now on, I'll refer to the Poetry virtual environment's shell as the "Poetry shell."
-
-### Install dependencies
-
-At the Poetry shell, install the project's dependencies:
+You can set up a Python virtual environment by issuing the following command from the root directory of the repository:
 
 ```shell
-poetry install
+uv sync
 ```
+
+That command will:
+1. **Create a Python virtual environment** at `.venv` (if one doesn't already exist there)
+2. **Install all dependencies** described in `uv.lock` into that Python virtual environment
+3. Uninstall all dependencies _not_ described in `uv.lock` from that Python virtual environment
+
+### Activate Python virtual environment
+
+Now that you have set up a Python virtual environment, you can activate it by issuing the following command:
+
+```shell
+source .venv/bin/activate
+```
+
+> Note: Once you're ready to _deactivate_ the Python virtual environment, you can do so by running `$ deactivate`.
 
 ### Make changes
 
@@ -289,7 +292,7 @@ Edit the tool's source code and documentation however you want.
 While editing the tool's source code, you can run the tool as you normally would in order to test things out.
 
 ```shell
-poetry run refscan --help
+uv run refscan --help
 ```
 
 ### Check types
@@ -299,7 +302,7 @@ We use [mypy](https://mypy.readthedocs.io/en/stable/) as the static type checker
 You can perform static type checking by running the following command from the root directory of the repository:
 
 ```shell
-poetry run mypy
+uv run mypy
 ```
 
 ### Run tests
@@ -311,29 +314,45 @@ Tests are defined in the `tests` directory.
 You can run the tests by running the following command from the root directory of the repository:
 
 ```shell
-poetry run pytest
+uv run pytest
 ```
 
 ### Format code
 
-We use [`black`](https://black.readthedocs.io/en/stable/) as the code formatter for `refscan`. 
+We use [`ruff`](https://docs.astral.sh/ruff/formatter/) as the code _formatter_ for `refscan`.
 
-We do not use it with its default options. Instead, we include an option that allows lines to be 120 characters
-instead of the default 88 characters. That option is defined in the `[tool.black]` section of `pyproject.toml`.
+We mostly use it with its default rules. All of the ways we deviate from those are listed
+in the `[tool.ruff]` section of `pyproject.toml`.
 
-You can format all the Python code in the repository by running this command
-from the root directory of the repository:
+You can _check_ the code's compliance with the "formatter rules" by running this command from the root directory of the repository:
 
 ```shell
-poetry run black .
+uv run ruff format --check
 ```
 
-#### Check format
-
-You can _check_ the format of the Python code by including the `--check` option, like this:
+That will output a _list_ of files that don't comply. To see the violations, themselves, you can run:
 
 ```shell
-poetry run black --check .
+uv run ruff format --diff
+```
+
+You can _format_ the code by omitting the `--check` and `--diff` flags:
+
+```shell
+uv run ruff format
+```
+
+### Lint code
+
+We also use [`ruff`](https://docs.astral.sh/ruff/linter/) as the code _linter_ for `refscan`.
+
+We use it with its [default rules](https://docs.astral.sh/ruff/rules/), **plus** some additional ones,
+all of which are listed in the `[tool.ruff.lint]` section of `pyproject.toml`.
+
+You can _check_ the code's compliance with the "linter rules" by running this command from the root directory of the repository:
+
+```shell
+uv run ruff check
 ```
 
 ## Building and publishing
@@ -350,7 +369,7 @@ That package will have a version identifier that matches the name of the Git tag
 In case you want to test the build process locally, you can do so by running:
 
 ```shell
-poetry build
+uv build
 ```
 
 > That will create both a

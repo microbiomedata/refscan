@@ -63,7 +63,6 @@ class Finder:
         # Check whether either (a) the queue is empty or (b) this collection name is not at the front of the queue.
         # Example: [] is empty, or "b_set" is not the first item in ["a_set", "b_set", "c_set"]
         if len(queue) == 0 or queue[0] != collection_name:
-
             # If this collection name is already (elsewhere) in the queue, remove it from that position, automatically
             # updating the list indexes of subsequent list items (so there is no "gap" in the list).
             # Example: Removing "b_set" from ["a_set", "b_set", "c_set"] → ["a_set", "c_set"]
@@ -86,7 +85,6 @@ class Finder:
 
         # Iterate over the collection names in the queue, from back (oldest) to front (newest).
         for cached_collection_name in reversed(self.cached_collection_names_where_recently_found):
-
             # If this cached collection name is among the eligible ones, move it to the front of the list.
             # Example: Since "b_set" is in ["a_set", "b_set", "c_set"] → ["b_set, "a_set", "c_set"]
             if cached_collection_name in names_of_eligible_collections:
@@ -143,7 +141,6 @@ class Finder:
         # Search the collections.
         query_filter = dict(id=document_id)
         for collection_name in ordered_collection_names:
-
             # Before querying the database, check our cache of document `id` presences/absences per collection.
             is_id_present: Optional[bool] = self._get_cached_id_presence_in_collection(
                 collection_name=collection_name, document_id=document_id

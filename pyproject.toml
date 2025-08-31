@@ -1,72 +1,108 @@
-# Reference: https://python-poetry.org/docs/pyproject/
-
-[tool.poetry]
+[project]
 name = "refscan"
 version = "0.0.0"
 description = "Command-line program that scans the NMDC MongoDB database for referential integrity violations"
 authors = []
+# Note: We constrain the Python version to 3.9.* because we know that `nmdc-schema`, which depends upon this
+#       package, is also constrained to Python 3.9.* (according to its `pyproject.toml` file).
+#       Reference: https://github.com/microbiomedata/nmdc-schema/blob/main/pyproject.toml#L34
+requires-python = ">= 3.9, < 3.10"
 readme = "README.md"
-repository = "https://github.com/microbiomedata/refscan"
-homepage = "https://github.com/microbiomedata/refscan"
-documentation = "https://github.com/microbiomedata/refscan"
-keywords = ["mongodb", "mongo", "relationships", "reference", "database", "data", "referential integrity", "scan"]
+keywords = [
+    "mongodb",
+    "mongo",
+    "relationships",
+    "reference",
+    "database",
+    "data",
+    "referential integrity",
+    "scan",
+]
+dependencies = [
+    # We use `linkml-runtime` to facilitate using `nmdc-schema`.
+    # Docs: https://linkml.io/linkml/developers/schemaview.html#linkml_runtime.utils.schemaview.SchemaView
+    "linkml-runtime >= 1.7.5, < 2",
+    # We use `pymongo` to communicate with MongoDB servers.
+    # Docs: (https://pymongo.readthedocs.io/en/stable/
+    "pymongo >= 4.7.1, < 5",
+    # We use `rich` to format console output.
+    # Docs: https://rich.readthedocs.io/en/stable/index.html
+    "rich >= 13.7.1, < 14",
+    # We use `typer` as a CLI framework.
+    # Docs: https://typer.tiangolo.com/
+    "typer >= 0.15.1, < 0.16",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-# We use `linkml-runtime` to facilitate using `nmdc-schema`.
-# Docs: https://linkml.io/linkml/developers/schemaview.html#linkml_runtime.utils.schemaview.SchemaView
-linkml-runtime = "^1.7.5"
-# We use `pymongo` to communicate with MongoDB servers.
-# Docs: (https://pymongo.readthedocs.io/en/stable/
-pymongo = "^4.7.1"
-# We use `rich` to format console output.
-# Docs: https://rich.readthedocs.io/en/stable/index.html
-rich = "^13.7.1"
-# We use `typer` as a CLI framework.
-# Docs: https://typer.tiangolo.com/
-typer = "^0.15.1"
+[project.urls]
+Homepage = "https://github.com/microbiomedata/refscan"
+Repository = "https://github.com/microbiomedata/refscan"
+Documentation = "https://github.com/microbiomedata/refscan"
 
-[tool.poetry.group.dev.dependencies]
-# We use `black` for code formatting.
-# Usage: $ poetry run black --line-length 120 .
-# Docs: https://black.readthedocs.io/en/stable/
-black = "^24.4.2"
-# We use `pyinstrument` for performance profiling.
-# Usage: $ pyinstrument --from-path refscan --help
-# Docs: https://pyinstrument.readthedocs.io/en/latest/guide.html#profile-a-python-cli-command
-pyinstrument = "^4.6.2"
-# We use `pytest` to run tests.
-# Usage: $ poetry run pytest
-# Docs: https://docs.pytest.org/en/stable/contents.html
-pytest = "^8.2.2"
-pytest-cov = "^5.0.0"
-# We use `mongomock` to test MongoDB interaction without involving a real MongoDB instance.
-# Docs: https://github.com/mongomock/mongomock
-mongomock = "^4.3.0"
-# We use `mypy` to perform static type checking.
-# Usage: $ poetry run mypy
-# Docs: https://mypy.readthedocs.io/en/stable/
-mypy = "^1.16.0"
-
-[tool.poetry.scripts]
-# Reference: https://python-poetry.org/docs/pyproject#scripts
-# Reference: https://typer.tiangolo.com/tutorial/package/#add-a-script
+[project.scripts]
 refscan = "refscan.cli.cli:app"
 
+[dependency-groups]
+dev = [
+    # We use `pyinstrument` for performance profiling.
+    # Usage: $ uv run pyinstrument --from-path refscan --help
+    # Docs: https://pyinstrument.readthedocs.io/en/latest/guide.html#profile-a-python-cli-command
+    "pyinstrument >= 4.6.2, < 5",
+    # We use `pytest` to run tests.
+    # Usage: $ uv run pytest
+    # Docs: https://docs.pytest.org/en/stable/contents.html
+    "pytest >= 8.2.2, < 9",
+    "pytest-cov >= 5.0.0, < 6",
+    # We use `mongomock` to test MongoDB interaction without involving a real MongoDB instance.
+    # Docs: https://github.com/mongomock/mongomock
+    "mongomock >= 4.3.0, < 5",
+    # We use `mypy` to perform static type checking.
+    # Usage: $ uv run mypy
+    # Docs: https://mypy.readthedocs.io/en/stable/
+    "mypy >= 1.16.0, < 2",
+    # We use `ruff` for both code formatting and linting.
+    # Docs: https://docs.astral.sh/ruff/
+    "ruff >= 0.12.11",
+]
+
+[build-system]
+# Note: The `migrate-to-uv` tool (i.e. https://github.com/mkniewallner/migrate-to-uv), which we used to switch
+#       from Poetry to `uv`, set this to use `hatchling`. We then changed it to use `uv_build` instead.
+#       Reference: https://docs.astral.sh/uv/concepts/build-backend/#using-the-uv-build-backend
+requires = ["uv_build >= 0.8.14, < 0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Note: We specify `module-name` here to tell the `uv_build` backend that our main module is in `refscan/`
+#       (as opposed to being in a `src/` directory, which is where the backend would look for it by default).
+#       Reference: https://docs.astral.sh/uv/concepts/build-backend/#modules
+module-name = "refscan"
+module-root = ""
+
 [tool.pytest.ini_options]
-# Make it so that, when someone runs `$ poetry run pytest`, in addition to running the tests, it also (a) runs doctests
+# Make it so that, when someone runs `$ uv run pytest`, in addition to running the tests, it also (a) runs doctests
 # defined in Python modules, and (b) measures—via the `pytest-cov` plugin—test coverage within the `refscan` folder.
 # Reference (a): https://docs.pytest.org/en/stable/how-to/doctest.html#how-to-run-doctests
 # Reference (b): https://pytest-cov.readthedocs.io/en/latest/config.html#configuration
 addopts = "--doctest-modules --cov=refscan"
 
-[tool.black]
-# Make it so that, when someone runs `$ poetry run black`, these default CLI options are used.
-# Reference: https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-format
+[tool.ruff]
 line-length = 120
 
+[tool.ruff.lint]
+# Specify which linting rules will be used when someone runs `$ uv run ruff check`.
+# Note: The default rules are `["E4", "E7", "E9", "F"]`.
+# References:
+# - https://docs.astral.sh/ruff/rules/ (the list of rules)
+# - https://docs.astral.sh/ruff/settings/#lint_select (the `select` setting)
+select = ["E4", "E7", "E9", "F", "D101", "D102", "D103"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore some rules when linting files in specified directories.
+# Reference: https://docs.astral.sh/ruff/settings/#lint_per-file-ignores
+"tests/*.py" = ["D101", "D102", "D103"]
+
 [tool.mypy]
-# Make it so, when someone runs `$ poetry run mypy`, these default CLI options are used.
+# Make it so, when someone runs `$ uv run mypy`, these default CLI options are used.
 # Reference: https://mypy.readthedocs.io/en/stable/config_file.html
 files = "."
 
@@ -74,7 +110,7 @@ files = "."
 # Silence the following error:
 # > Skipping analyzing "linkml_runtime": module is installed, but missing library stubs or py.typed marker  [import-untyped] 
 #
-# Note: We first tried using the following, but it seemed to have no effect on the behavior of mypy when run via `$ poetry run mypy`.
+# Note: We first tried using the following, but it seemed to have no effect on the behavior of mypy when run via `$ poetry run mypy` (back when we used poetry instead of uv).
 #       ```
 #       [mypy-linkml_runtime]
 #       ignore_missing_imports = true
@@ -83,7 +119,3 @@ files = "."
 #
 module = "linkml_runtime"
 ignore_missing_imports = true
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

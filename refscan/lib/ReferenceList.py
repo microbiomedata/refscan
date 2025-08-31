@@ -69,7 +69,6 @@ class ReferenceList(UserList):
         """
         target_collection_names = []
         for reference in self.data:  # note: in a `UserList`, `self.data` refers to the underlying list data structure
-
             # If this reference's source describes the specified source, record the reference's target collection name.
             if reference.source_class_name == source_class_name and reference.source_field_name == source_field_name:
                 target_collection_names.append(reference.target_collection_name)

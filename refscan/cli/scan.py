@@ -202,7 +202,7 @@ def scan(
     num_all_violations = len(all_violations)
     color_name = "white" if num_all_violations == 0 else "red"
     console.print()  # newline
-    console.print(f"Total violations: " f"[{color_name}]{num_all_violations}[/{color_name}]")
+    console.print(f"Total violations: [{color_name}]{num_all_violations}[/{color_name}]")
     console.print()  # newline
 
     # Create a TSV-formatted violation report that lists all violations among all collections.
