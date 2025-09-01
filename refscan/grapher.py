@@ -6,7 +6,7 @@ from importlib import resources
 
 import linkml_runtime
 
-from refscan import get_package_metadata
+from refscan import app_version
 from refscan.lib.constants import console
 from refscan.lib.helpers import (
     get_collection_name_to_class_names_map,
@@ -161,7 +161,7 @@ def graph(
     graph_data_json_base64_str = encode_json_value_as_base64_str(elements)
     graph_metadata_json_base64_str = encode_json_value_as_base64_str(
         dict(
-            app_version=get_package_metadata("Version"),
+            app_version=app_version,
             schema_version=schema_view.schema.version,
             subject_singular="class" if subject == Subject.class_ else "collection",
             subject_plural="classes" if subject == Subject.class_ else "collections",

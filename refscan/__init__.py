@@ -1,18 +1,23 @@
-from importlib.metadata import metadata, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
+from typing import Optional
 
 
-def get_package_metadata(key: str) -> str:
+def get_package_version(package_name: str) -> Optional[str]:
     r"""
-    Returns metadata about the installed package.
+    Returns the version identifier (e.g., "1.2.3") of the package having the specified name.
 
-    References:
-    - https://docs.python.org/3/library/importlib.metadata.html#distribution-metadata
-    - https://github.com/python-poetry/poetry/issues/273#issuecomment-570999678
+    Args:
+        package_name: The name of the package
+
+    Returns:
+        The version identifier of the package, or `None` if package not found
     """
-    metadata_value = ""
     try:
-        package_metadata = metadata("refscan")
-        metadata_value = package_metadata.get(key, "")
+        return version(package_name)
     except PackageNotFoundError:
-        pass
-    return metadata_value
+        return None
+
+
+# Make an `import`-able variable whose value is the version identifier of this package.
+app_name = "refscan"
+app_version = get_package_version(app_name)
