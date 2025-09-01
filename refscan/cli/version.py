@@ -1,9 +1,7 @@
 import typer
 
 from refscan.lib.constants import console
-from refscan import get_package_metadata
-
-app_version = get_package_metadata("Version")
+from refscan import app_version
 
 
 def version() -> None:

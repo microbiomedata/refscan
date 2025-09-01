@@ -16,9 +16,7 @@ from refscan.lib.helpers import (
 )
 from refscan.lib.ViolationList import ViolationList
 from refscan.scanner import scan as refscan_scan
-from refscan import get_package_metadata
-
-app_version = get_package_metadata("Version")
+from refscan import app_version
 
 
 def scan(
