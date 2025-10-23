@@ -3,10 +3,7 @@ name = "refscan"
 version = "0.0.0"
 description = "Command-line program that scans the NMDC MongoDB database for referential integrity violations"
 authors = []
-# Note: We constrain the Python version to 3.9.* because we know that `nmdc-schema`, which depends upon this
-#       package, is also constrained to Python 3.9.* (according to its `pyproject.toml` file).
-#       Reference: https://github.com/microbiomedata/nmdc-schema/blob/main/pyproject.toml#L34
-requires-python = ">= 3.9, < 3.10"
+requires-python = ">= 3.9, < 4.0"
 readme = "README.md"
 keywords = [
     "mongodb",
