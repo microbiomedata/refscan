@@ -14,6 +14,7 @@ jobs:
   check-source-code-format:
     name: Check source code format
     runs-on: ubuntu-latest
+    permissions: { contents: read }
     steps:
       - name: Check out commit  # Docs: https://github.com/actions/checkout
         uses: actions/checkout@v4
