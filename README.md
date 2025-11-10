@@ -21,7 +21,7 @@ graph LR
     classDef dashed_border stroke-dasharray: 5 5
 ```
 
-In addition to using refscan to scan the NMDC MongoDB database for referential integrity violations,
+In addition to using `refscan` to scan the NMDC MongoDB database for referential integrity violations,
 people can use `refscan` to generate **graphs** (diagrams) depicting which collections' documents (or which classes'
 instances) can contain references to which _other_ collections' documents (or classes' instances) while still being
 schema compliant.
@@ -45,6 +45,7 @@ Here is a summary of how each of `refscan`'s main functions works under the hood
 ### Graph
 
 `refscan` does this in three stages:
+
 1. It uses the LinkML schema to determine where references _can_ exist in a MongoDB database that conforms to the schema.
 2. It formats that list of references into a data structure compatible with [`Cytoscape.js`](https://js.cytoscape.org/).
 3. It outputs an HTML document that uses `Cytoscape.js` to visualize that data structure as a graph.
@@ -245,6 +246,18 @@ You can uninstall the tool from your computer by running:
 ```shell
 pipx uninstall refscan
 ```
+
+### Container-based usage
+
+You can also run `refscan` via a container image hosted by the [GitHub Container Registry](https://github.com/microbiomedata/refscan/pkgs/container/refscan).
+
+```shell
+docker run --rm -it refscan --help
+```
+
+> Note: When running `refscan` via a container image, you can reference your host machine via the [special hostname](https://docs.docker.com/desktop/troubleshoot-and-support/faqs/general/#how-do-i-connect-from-a-container-to-a-service-on-the-host), "`host.docker.internal`".
+> 
+> In other words, `$ docker run refscan --mongo-uri mongodb://host.docker.internal:27017` does the same thing as `$ refscan --mongo-uri mongodb://localhost:27017`, except the first command runs `refscan` within a container while the second one runs it directly on your hose machine.
 
 ## Development
 
