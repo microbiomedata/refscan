@@ -5,6 +5,9 @@ on:
   release:
     types: [ published ]
 
+# Note: Individual jobs can override this default permission specification as needed.
+permissions: {}
+
 jobs:
   check-source-code-format:
     name: Check source code format
