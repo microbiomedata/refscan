@@ -12,9 +12,11 @@ jobs:
   check-source-code-format:
     name: Check source code format
     uses: ./.github/workflows/check-source-code-format.yml
+    permissions: { contents: read }
   run-tests:
     name: Run tests
     uses: ./.github/workflows/run-tests.yml
+    permissions: { contents: read }
   build:
     name: Build image
     # This job depends upon other jobs succeeding.
@@ -22,9 +24,7 @@ jobs:
     needs:
       - check-source-code-format
       - run-tests
-    permissions:
-      contents: read
-      packages: write
+    permissions: { contents: read, packages: write }
     runs-on: ubuntu-latest
     steps:
       - name: Check out commit  # Docs: https://github.com/actions/checkout
