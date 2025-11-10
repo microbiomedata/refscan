@@ -1,0 +1,60 @@
+# This GHA workflow builds a container image and pushes it to GitHub Container Registry.
+name: Build and push container image to GHCR
+
+on:
+  release:
+    types: [ published ]
+
+# Note: Individual jobs can override this default permission specification as needed.
+permissions: {}
+
+jobs:
+  check-source-code-format:
+    name: Check source code format
+    uses: ./.github/workflows/check-source-code-format.yml
+  run-tests:
+    name: Run tests
+    uses: ./.github/workflows/run-tests.yml
+  build:
+    name: Build image
+    # This job depends upon other jobs succeeding.
+    # Reference: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs:
+      - check-source-code-format
+      - run-tests
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out commit  # Docs: https://github.com/actions/checkout
+        uses: actions/checkout@v4
+
+      # Generate tags for the Docker container images.
+      - name: Generate image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/microbiomedata/refscan
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
