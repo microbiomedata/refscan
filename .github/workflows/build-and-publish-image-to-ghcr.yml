@@ -19,13 +19,16 @@ jobs:
     needs:
       - check-source-code-format
       - run-tests
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out commit  # Docs: https://github.com/actions/checkout
         uses: actions/checkout@v4
 
-      # Generate tags and labels for the Docker container images.
-      - name: Generate image tags and labels
+      # Generate tags for the Docker container images.
+      - name: Generate image tags
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -36,10 +39,6 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=sha
-          labels: |
-            org.opencontainers.image.created="{{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}"
-            org.opencontainers.image.version="{{version}}"
-            org.opencontainers.image.revision="{{sha}}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
