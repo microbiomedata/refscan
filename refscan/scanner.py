@@ -327,7 +327,7 @@ def scan(
             # that we are starting to scan this collection.
             #
             # Note: This output can serve as a "sign of life" for a user, when, for example, refscan is
-            #       running in a Kubernetes CronJob where `tty is `false` (i.e. `tty: false`).
+            #       running in a Kubernetes CronJob where `tty` is `false` (i.e. `tty: false`).
             #
             # Reference: https://rich.readthedocs.io/en/stable/reference/console.html#rich.console.Console.is_terminal
             #
