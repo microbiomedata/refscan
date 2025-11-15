@@ -322,6 +322,18 @@ def scan(
                 remaining_time_label="remaining",
             )
 
+            # If the console is not connected to a device capable of understanding escape characters
+            # (in which case, Rich won't try to display the progress bar), print a message indicating
+            # that we are starting to scan this collection.
+            #
+            # Note: This output can serve as a "sign of life" for a user, when, for example, refscan is
+            #       running in a Kubernetes CronJob where `tty` is `false` (i.e. `tty: false`).
+            #
+            # Reference: https://rich.readthedocs.io/en/stable/reference/console.html#rich.console.Console.is_terminal
+            #
+            if not console.is_terminal:
+                console.print(f"Scanning collection '{source_collection_name}' ({num_relevant_documents} documents).")
+
             # Advance the progress bar by 0 (this makes it so that, even if there are 0 relevant documents, the progress
             # bar does not continue incrementing its "elapsed time" even after a subsequent task has begun).
             progress.update(task_id, advance=0)
