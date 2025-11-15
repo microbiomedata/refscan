@@ -332,7 +332,9 @@ def scan(
             # Reference: https://rich.readthedocs.io/en/stable/reference/console.html#rich.console.Console.is_terminal
             #
             if not console.is_terminal:
-                console.print(f"Scanning collection '{source_collection_name}' ({num_relevant_documents} documents).")
+                console.print(
+                    f"Scanning collection '{source_collection_name}' ({num_relevant_documents} relevant documents)."
+                )
 
             # Advance the progress bar by 0 (this makes it so that, even if there are 0 relevant documents, the progress
             # bar does not continue incrementing its "elapsed time" even after a subsequent task has begun).
