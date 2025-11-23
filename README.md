@@ -257,7 +257,7 @@ docker run --rm -it refscan --help
 
 > Note: When running `refscan` via a container image, you can reference your host machine via the [special hostname](https://docs.docker.com/desktop/troubleshoot-and-support/faqs/general/#how-do-i-connect-from-a-container-to-a-service-on-the-host), "`host.docker.internal`".
 > 
-> In other words, `$ docker run refscan --mongo-uri mongodb://host.docker.internal:27017` does the same thing as `$ refscan --mongo-uri mongodb://localhost:27017`, except the first command runs `refscan` within a container while the second one runs it directly on your hose machine.
+> In other words, `$ docker run refscan --mongo-uri mongodb://host.docker.internal:27017` does the same thing as `$ refscan --mongo-uri mongodb://localhost:27017`, except the first command runs `refscan` within a container while the second one runs it directly on your host machine.
 
 ## Development
 
