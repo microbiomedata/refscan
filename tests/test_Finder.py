@@ -281,7 +281,7 @@ def test_finder_id_caching_when_enabled():
 def test_finder_id_caching_memory_usage():
     r"""
     Verify that with caching disabled, the cache dictionary doesn't accumulate data
-    even after many queries, ensuring minimal memory usage.
+    even after many queries, while with caching enabled, it accumulates all queried IDs.
     """
     db = mongomock.MongoClient().db
     finder_no_cache = Finder(database=db, enable_id_caching=False)

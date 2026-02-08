@@ -102,9 +102,7 @@ class Finder:
     def _set_cached_id_presence_in_collection(self, collection_name: str, document_id: str, is_present: bool) -> None:
         r"""
         Helper function that updates our cache of document `id` presences/absences, setting the presence flag for the
-        specified document `id` in the specified collection.
-
-        If ID caching is disabled, this method does nothing.
+        specified document `id` in the specified collection. If ID caching is disabled, this method does nothing.
         """
         if not self.enable_id_caching:
             return
@@ -116,9 +114,8 @@ class Finder:
     def _get_cached_id_presence_in_collection(self, collection_name: str, document_id: str) -> Optional[bool]:
         r"""
         Helper function that checks our cache of document `id` presences/absences, returning the presence/absence flag,
-        if any, for the specified document `id` in the specified collection.
-
-        If ID caching is disabled, this method always returns None (indicating no cached data is available).
+        if any, for the specified document `id` in the specified collection. If ID caching is disabled, this method
+        always returns None (indicating no cached data is available).
         """
         if not self.enable_id_caching:
             return None
