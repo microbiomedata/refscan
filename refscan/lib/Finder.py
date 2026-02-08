@@ -10,11 +10,17 @@ class Finder:
     speed up future searches.
     """
 
-    def __init__(self, database: Database):
+    def __init__(self, database: Database, enable_id_caching: bool = False):
         r"""
         Initializes an instance of the `Finder` class. The instance is bound to the specified MongoDB database.
+
+        Args:
+            database: The MongoDB database to search.
+            enable_id_caching: If True, caches the presence/absence of document IDs in collections to speed up
+                             repeated queries at the cost of increased memory usage. Defaults to False.
         """
         self.db = database
+        self.enable_id_caching = enable_id_caching
 
         # Initialize our cache of names of collections we most recently found referenced document `id`s in.
         #
@@ -97,7 +103,12 @@ class Finder:
         r"""
         Helper function that updates our cache of document `id` presences/absences, setting the presence flag for the
         specified document `id` in the specified collection.
+
+        If ID caching is disabled, this method does nothing.
         """
+        if not self.enable_id_caching:
+            return
+
         if collection_name not in self.cached_id_presence_by_collection:
             self.cached_id_presence_by_collection[collection_name] = {}  # creates key if it does not exist
         self.cached_id_presence_by_collection[collection_name][document_id] = is_present
@@ -106,7 +117,12 @@ class Finder:
         r"""
         Helper function that checks our cache of document `id` presences/absences, returning the presence/absence flag,
         if any, for the specified document `id` in the specified collection.
+
+        If ID caching is disabled, this method always returns None (indicating no cached data is available).
         """
+        if not self.enable_id_caching:
+            return None
+
         if (
             collection_name not in self.cached_id_presence_by_collection
             or document_id not in self.cached_id_presence_by_collection[collection_name]
