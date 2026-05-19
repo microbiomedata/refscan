@@ -290,7 +290,7 @@ schema_view = SchemaView("path/to/schema.yaml")
 # i.e., "What collections can exist?"
 collection_names = get_collection_names_from_schema(schema_view=schema_view)
 
-# Get the names of the classes whose instances the schema says be stored in each collection.
+# Get the names of the classes whose instances the schema says can be stored in each collection.
 # i.e., "What can exist in each collection?"
 collection_name_to_class_names_map = get_collection_name_to_class_names_map(
     schema_view=schema_view
