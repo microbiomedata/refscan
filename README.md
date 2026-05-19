@@ -59,7 +59,9 @@ whose definition `refscan` then uses to determine _which fields_ of that documen
 
 ## Usage
 
-### Install
+### Command-line application
+
+#### Install
 
 Assuming you have `pipx` installed, you can install the tool by running the following command:
 
@@ -72,7 +74,7 @@ pipx install refscan
 > Python scripts that are hosted on PyPI.
 > You can [install `pipx`](https://pipx.pypa.io/stable/installation/) by running `$ python -m pip install pipx`.
 
-### Run
+#### Run
 
 Once installed, you can display the tool's `--help` snippet by running:
 
@@ -99,7 +101,7 @@ At the time of this writing, the tool's `--help` snippet is:
 
 Each command has its own `--help` snippet.
 
-#### The `scan` command
+##### The `scan` command
 
 At the time of this writing, the `--help` snippet for the `scan` command is:
 
@@ -148,7 +150,7 @@ At the time of this writing, the `--help` snippet for the `scan` command is:
 
 <!-- Note: The above snippet was captured from a terminal window whose width was 90 characters. -->
 
-##### The MongoDB connection string (`--mongo-uri`)
+###### The MongoDB connection string (`--mongo-uri`)
 
 As documented in the `--help` snippet above, you can provide the MongoDB connection string to the tool via either
 (a) the `--mongo-uri` option; or (b) an environment variable named `MONGO_URI`. The latter can come in handy
@@ -161,7 +163,7 @@ Here's how you could create that environment variable:
 export MONGO_URI='mongodb://username:password@localhost:27017'
 ```
 
-##### The schema (`--schema`)
+###### The schema (`--schema`)
 
 As documented in the `--help` snippet above, you can provide the path to a YAML-formatted LinkML schema file to the tool
 via the `--schema` option.
@@ -195,7 +197,7 @@ curl -o schema.yaml https://raw.githubusercontent.com/microbiomedata/nmdc-schema
 ---
 </details>
 
-##### Output
+###### Output
 
 While `refscan` is running, it will display console output indicating what it's currently doing.
 
@@ -204,7 +206,7 @@ While `refscan` is running, it will display console output indicating what it's 
 Once the scan is complete, the reference report (TSV file) and violation report (TSV file) will be available
 in the current directory (or in custom directories, if any were specified via CLI options).
 
-#### The `graph` command
+##### The `graph` command
 
 At the time of this writing, the `--help` snippet for the `graph` command is:
 
@@ -231,7 +233,7 @@ At the time of this writing, the `--help` snippet for the `graph` command is:
 
 <!-- Note: The above snippet was captured from a terminal window whose width was 90 characters. -->
 
-### Update
+#### Update
 
 You can update the tool to [the latest version available on PyPI](https://pypi.org/project/refscan/) by running:
 
@@ -239,7 +241,7 @@ You can update the tool to [the latest version available on PyPI](https://pypi.o
 pipx upgrade refscan
 ```
 
-### Uninstall
+#### Uninstall
 
 You can uninstall the tool from your computer by running:
 
@@ -258,6 +260,56 @@ docker run --rm -it refscan --help
 > Note: When running `refscan` via a container image, you can reference your host machine via the [special hostname](https://docs.docker.com/desktop/troubleshoot-and-support/faqs/general/#how-do-i-connect-from-a-container-to-a-service-on-the-host), "`host.docker.internal`".
 > 
 > In other words, `$ docker run refscan --mongo-uri mongodb://host.docker.internal:27017` does the same thing as `$ refscan --mongo-uri mongodb://localhost:27017`, except the first command runs `refscan` within a container while the second one runs it directly on your host machine.
+
+### Library usage
+
+`refscan` can also be used as a library. This allows application developers to use the various
+functions implemented within `refscan` without having to re-implement them.
+
+#### Installation
+
+```sh
+pip install refscan
+```
+
+#### Example usage
+
+```py
+from linkml_runtime import SchemaView
+from refscan.lib.helpers import (
+    get_collection_name_to_class_names_map,
+    get_collection_names_from_schema,
+    get_names_of_classes_eligible_for_collection,
+)
+
+
+# Instantiate a `SchemaView` bound to the schema.
+schema_view = SchemaView("path/to/schema.yaml")
+
+# Get the names of all collections the schema says can exist in the NMDC database.
+# i.e., "What collections can exist?"
+collection_names = get_collection_names_from_schema(schema_view=schema_view)
+
+# Get the names of the classes whose instances the schema says be stored in each collection.
+# i.e., "What can exist in each collection?"
+collection_name_to_class_names_map = get_collection_name_to_class_names_map(
+    schema_view=schema_view
+)
+
+# Get the names of the classes whose instances the schema says can be stored in the "study_set" collection.
+# i.e., "What can exist in the 'study_set' collection?"
+class_names = get_names_of_classes_eligible_for_collection(
+    schema_view=schema_view,
+    collection_name="study_set",
+)
+```
+
+#### Note to NMDC developers
+
+If you think a given function currently implemented within the `refscan` repository would "fit better"
+in another NMDC repository, please create an issue or otherwise bring it to the attention of a
+`refscan` maintainer. For example, functions that depend upon only a `SchemaView` instance
+(and not upon a MongoDB connection) may "fit better" in the `nmdc-schema` repository.
 
 ## Development
 
