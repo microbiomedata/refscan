@@ -201,3 +201,112 @@ def test_finder_optimizes_collection_search_order():
 
     finder.cached_collection_names_where_recently_found = ["a_set", "b_set", "c_set"]
     assert finder._optimize_collection_search_order(["c_set", "d_set", "a_set"]) == ["a_set", "c_set", "d_set"]
+
+
+def test_finder_id_caching_disabled_by_default():
+    r"""
+    Verify that ID caching is disabled by default, meaning queries always hit the database
+    and no data is stored in the cache dictionary.
+    """
+    db = mongomock.MongoClient().db
+    finder = Finder(database=db)
+
+    # Verify caching is disabled by default
+    assert finder.enable_id_caching is False
+
+    # Seed database
+    db["test_set"].insert_one({"id": "test-001"})
+
+    # First query should find the document
+    result = finder.check_whether_document_having_id_exists_among_collections(
+        document_id="test-001",
+        collection_names=["test_set"],
+    )
+    assert result == "test_set"
+
+    # Cache should remain empty since caching is disabled
+    assert finder.cached_id_presence_by_collection == {}
+
+    # Second query should also hit the database (not use cache)
+    result = finder.check_whether_document_having_id_exists_among_collections(
+        document_id="test-001",
+        collection_names=["test_set"],
+    )
+    assert result == "test_set"
+
+    # Cache should still be empty
+    assert finder.cached_id_presence_by_collection == {}
+
+
+def test_finder_id_caching_when_enabled():
+    r"""
+    Verify that when ID caching is enabled, the Finder caches presence/absence
+    information and uses it to avoid redundant database queries.
+    """
+    db = mongomock.MongoClient().db
+    finder = Finder(database=db, enable_id_caching=True)
+
+    # Verify caching is enabled
+    assert finder.enable_id_caching is True
+
+    # Seed database
+    db["test_set"].insert_one({"id": "test-001"})
+
+    # First query should find the document
+    result = finder.check_whether_document_having_id_exists_among_collections(
+        document_id="test-001",
+        collection_names=["test_set"],
+    )
+    assert result == "test_set"
+
+    # Cache should now contain the presence information
+    assert "test_set" in finder.cached_id_presence_by_collection
+    assert finder.cached_id_presence_by_collection["test_set"]["test-001"] is True
+
+    # Query for a non-existent document
+    result = finder.check_whether_document_having_id_exists_among_collections(
+        document_id="test-002",
+        collection_names=["test_set"],
+    )
+    assert result is None
+
+    # Cache should now also contain the absence information
+    assert finder.cached_id_presence_by_collection["test_set"]["test-002"] is False
+
+    # Verify the cache is being used by checking internal method
+    assert finder._get_cached_id_presence_in_collection("test_set", "test-001") is True
+    assert finder._get_cached_id_presence_in_collection("test_set", "test-002") is False
+
+
+def test_finder_id_caching_memory_usage():
+    r"""
+    Verify that with caching disabled, the cache dictionary doesn't accumulate data
+    even after many queries, while with caching enabled, it accumulates all queried IDs.
+    """
+    db = mongomock.MongoClient().db
+    finder_no_cache = Finder(database=db, enable_id_caching=False)
+    finder_with_cache = Finder(database=db, enable_id_caching=True)
+
+    # Seed database with multiple documents
+    test_ids = [f"test-{i:03d}" for i in range(100)]
+    db["test_set"].insert_many([{"id": doc_id} for doc_id in test_ids[:50]])
+
+    # Query many documents with caching disabled
+    for doc_id in test_ids:
+        finder_no_cache.check_whether_document_having_id_exists_among_collections(
+            document_id=doc_id,
+            collection_names=["test_set"],
+        )
+
+    # Query many documents with caching enabled
+    for doc_id in test_ids:
+        finder_with_cache.check_whether_document_having_id_exists_among_collections(
+            document_id=doc_id,
+            collection_names=["test_set"],
+        )
+
+    # With caching disabled, the cache should remain empty
+    assert finder_no_cache.cached_id_presence_by_collection == {}
+
+    # With caching enabled, the cache should contain all queried IDs
+    assert len(finder_with_cache.cached_id_presence_by_collection["test_set"]) == 100

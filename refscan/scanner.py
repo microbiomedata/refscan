@@ -262,7 +262,8 @@ def scan(
 
     # Make a finder bound to this database.
     # Note: A finder is a wrapper around a database that adds some caching that speeds up searches in some situations.
-    finder = Finder(database=db)
+    # Note: We enable ID caching for CLI scans to improve performance (at the cost of increased memory usage).
+    finder = Finder(database=db, enable_id_caching=True)
 
     source_collections_and_their_violations: dict[str, ViolationList] = {}
     with custom_progress as progress:
