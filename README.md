@@ -251,10 +251,10 @@ pipx uninstall refscan
 
 ### Container-based usage
 
-You can also run `refscan` via a container image hosted by the [GitHub Container Registry](https://github.com/microbiomedata/refscan/pkgs/container/refscan).
+You can also run `refscan` via a container image hosted by the [GitHub Container Registry](https://github.com/microbiomedata/refscan/pkgs/container/refscan); for example:
 
 ```shell
-docker run --rm -it refscan --help
+docker run --rm -it ghcr.io/microbiomedata/refscan:sha-51b1bb9 --help
 ```
 
 > Note: When running `refscan` via a container image, you can reference your host machine via the [special hostname](https://docs.docker.com/desktop/troubleshoot-and-support/faqs/general/#how-do-i-connect-from-a-container-to-a-service-on-the-host), "`host.docker.internal`".
