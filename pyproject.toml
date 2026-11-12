@@ -47,7 +47,7 @@ dev = [
     # We use `pytest` to run tests.
     # Usage: $ uv run pytest
     # Docs: https://docs.pytest.org/en/stable/contents.html
-    "pytest >= 8.2.2, < 9",
+    "pytest>=8.2.2,<10",
     "pytest-cov >= 5.0.0, < 6",
     # We use `mongomock` to test MongoDB interaction without involving a real MongoDB instance.
     # Docs: https://github.com/mongomock/mongomock
