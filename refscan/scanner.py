@@ -14,6 +14,7 @@ from refscan.lib.helpers import (
     init_progress_bar,
 )
 from refscan.lib.ReferenceList import ReferenceList
+from refscan.lib.ReferringDocumentDescriptor import ReferringDocumentDescriptor
 from refscan.lib.Violation import Violation
 from refscan.lib.ViolationList import ViolationList
 from refscan.lib.constants import console as default_console
@@ -25,7 +26,7 @@ def identify_referring_documents(
     references: ReferenceList,
     finder: Finder,
     client_session: Optional[ClientSession] = None,
-) -> List[dict]:
+) -> List[ReferringDocumentDescriptor]:
     r"""
     Identifies documents that reference the specified one.
 
@@ -50,7 +51,7 @@ def identify_referring_documents(
     """
 
     # Initialize a list of descriptors of documents that reference the specified document.
-    referring_document_descriptors: List[Dict] = []
+    referring_document_descriptors: List[ReferringDocumentDescriptor] = []
 
     # If the specified document does not have an `id` field, we know it cannot be referenced.
     if "id" not in document:
@@ -111,7 +112,11 @@ def identify_referring_documents(
                 schema_view=schema_view,
                 class_uri=referring_document["type"],
             )
-            document_descriptor = dict(
+            if source_class_name is None:
+                raise ValueError(
+                    f"Failed to translate class_uri '{referring_document['type']}' into schema class name."
+                )
+            document_descriptor = ReferringDocumentDescriptor(
                 source_collection_name=collection_name,
                 source_class_name=source_class_name,
                 source_document_object_id=referring_document["_id"],
