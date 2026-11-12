@@ -27,7 +27,7 @@ dependencies = [
     "rich >= 13.7.1, < 14",
     # We use `typer` as a CLI framework.
     # Docs: https://typer.tiangolo.com/
-    "typer >= 0.15.1, < 0.16",
+    "typer >= 0.29.1, < 0.30",
 ]
 
 [project.urls]
