@@ -21,7 +21,7 @@ dependencies = [
     "linkml-runtime >= 1.7.5, < 2",
     # We use `pymongo` to communicate with MongoDB servers.
     # Docs: (https://pymongo.readthedocs.io/en/stable/
-    "pymongo >= 4.7.1, < 5",
+    "pymongo >= 4.18.3, < 5",
     # We use `rich` to format console output.
     # Docs: https://rich.readthedocs.io/en/stable/index.html
     "rich >= 13.7.1, < 14",
