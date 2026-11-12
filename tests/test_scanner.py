@@ -1,8 +1,12 @@
+from typing import List
+
+from bson import ObjectId
 import linkml_runtime
 import mongomock
 import pytest
 
 from refscan.lib.Finder import Finder
+from refscan.lib.ReferringDocumentDescriptor import ReferringDocumentDescriptor
 from refscan.lib.helpers import get_collection_name_to_class_names_map, identify_references
 from refscan.scanner import (
     identify_referring_documents,
@@ -51,14 +55,14 @@ def seeded_db():
     return db
 
 
-def test_identify_referring_documents(schema_view, seeded_db):
+def test_identify_referring_documents(schema_view, seeded_db) -> None:
     # Initialize other dependencies for the test (besides the `SchemaView`).
     finder = Finder(database=seeded_db)
     collection_name_to_class_names = get_collection_name_to_class_names_map(schema_view=schema_view)
     references = identify_references(schema_view, collection_name_to_class_names)
 
     # Case 1: A company that has 0 referring documents.
-    referring_document_descriptors = identify_referring_documents(
+    referring_document_descriptors: List[ReferringDocumentDescriptor] = identify_referring_documents(
         document={"id": "c-0", "type": "refscan:Company"},
         schema_view=schema_view,
         references=references,
@@ -74,6 +78,7 @@ def test_identify_referring_documents(schema_view, seeded_db):
         finder=finder,
     )
     assert len(referring_document_descriptors) == 1
+    assert isinstance(referring_document_descriptors[0]["source_document_object_id"], ObjectId)
     assert referring_document_descriptors[0]["source_document_id"] == "e-1"
     assert referring_document_descriptors[0]["source_collection_name"] == "employee_set"
     assert referring_document_descriptors[0]["source_class_name"] == "Employee"
@@ -86,6 +91,7 @@ def test_identify_referring_documents(schema_view, seeded_db):
         finder=finder,
     )
     assert len(referring_document_descriptors) == 4
+    assert all(isinstance(d["source_document_object_id"], ObjectId) for d in referring_document_descriptors)
     assert set(d["source_collection_name"] for d in referring_document_descriptors) == {
         "employee_set",
         "testimonial_set",
